@@ -778,57 +778,58 @@ setShowMap(false);
     </div>
 
     {/* Grid: 4 cols on mobile, 8 cols on laptop */}
-    <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 lg:gap-4">
+   <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 lg:gap-4">
+  {want.map((cat, i) => (
+    <button
+      key={i}
+      type="button"
+      onClick={() => handleWantClick(cat.name)}
+      className="group flex flex-col items-center gap-2 p-1.5 rounded-2xl transition-all cursor-pointer"
+    >
+      {/* Arch Shaped Image Tile */}
+      <div 
+        style={{
+          background: "linear-gradient(180deg, #FFFFFF 0%, #FFF5F8 60%, #F8E2EC 100%)",
+        }}
+        className="
+          relative w-full aspect-[4/5]
+          max-w-[76px] sm:max-w-[84px]
+          rounded-t-[45px] rounded-b-[16px] overflow-hidden
+          border border-[#F1DFE8]
+          shadow-xs
+          group-hover:shadow-md
+          group-hover:-translate-y-1
+          transition-all duration-300
+        "
+      >
+        <div className="absolute inset-x-2 top-2 bottom-1 relative overflow-hidden rounded-t-[36px]">
+          <Image
+            src={cat.image || "/images/sremovebg.png"}
+            fill
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+            alt={cat.name}
+          />
+        </div>
 
-      {want.map((cat, i) => (
-        <button
-          key={i}
-          onClick={() => handleWantClick(cat.name)}
-          className="group flex flex-col items-center gap-2 p-1.5 rounded-2xl hover:bg-[#FFF7F3] transition-all"
-        >
-          {/* Image Tile */}
-          <div 
-            style={{
-              background: "linear-gradient(180deg, #FFF7F3 0%, #FFF1F4 65%, #F8E5ED 100%)",
-            }}
-            className="
-              relative w-full aspect-square
-              max-w-[76px] sm:max-w-[84px]
-              rounded-2xl overflow-hidden
-              border border-[#F1DFE8]
-              shadow-xs
-              group-hover:shadow-md
-              group-hover:-translate-y-1
-              transition-all duration-200
-            "
-          >
-            <Image
-              src={cat.image || "/images/sremovebg.png"}
-              fill
-              className="object-cover group-hover:scale-105 transition duration-300"
-              alt={cat.name}
-            />
+        {/* Subtle overlay shine */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40 pointer-events-none" />
+      </div>
 
-            {/* subtle overlay shine */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40" />
-          </div>
-
-          {/* Label */}
-          <span className="
-            text-[11px] sm:text-xs
-            font-bold
-            text-center
-            text-[#2B1B2E]
-            group-hover:text-[#C2306B]
-            transition-colors
-            tracking-tight
-          ">
-            {cat.name}
-          </span>
-        </button>
-      ))}
-
-    </div>
+      {/* Label */}
+      <span className="
+        text-[11px] sm:text-xs
+        font-bold
+        text-center
+        text-[#2B1B2E]
+        group-hover:text-[#C2306B]
+        transition-colors
+        tracking-tight
+      ">
+        {cat.name}
+      </span>
+    </button>
+  ))}
+</div>
 
   </div>
 </section>
