@@ -755,30 +755,10 @@ setShowMap(false);
   ">
 
     {/* Heading */}
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-3 border-b border-[#F5E8ED]">
-      <div>
-        <h2 className="
-          text-[18px] sm:text-xl lg:text-2xl
-          font-[800] text-center
-          tracking-tight
-          text-[#2B1B2E]
-        ">
-          Our Services
-        </h2>
-        <p className="text-xs text-center text-[#8D788D] mt-0.5">Select a category to view curated treatments</p>
-      </div>
-
-      {/* <button
-        onClick={() => router.push('/beauty')}
-        className="text-xs font-bold text-[#C2306B] hover:text-[#A82058] flex items-center gap-1 self-start sm:self-auto transition-colors"
-      >
-        <span>View Full Catalog</span>
-        <ChevronRight size={13} />
-      </button> */}
-    </div>
+   
 
     {/* Grid: 4 cols on mobile, 8 cols on laptop */}
-   <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 lg:gap-4">
+ <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 lg:gap-4">
   {want.map((cat, i) => (
     <button
       key={i}
@@ -786,33 +766,36 @@ setShowMap(false);
       onClick={() => handleWantClick(cat.name)}
       className="group flex flex-col items-center gap-2 p-1.5 rounded-2xl transition-all cursor-pointer"
     >
-      {/* Arch Shaped Image Tile */}
+      {/* Arch Shaped Image Tile with Transparent Wrapper & Soft Gradient Card Inside */}
       <div 
-        style={{
-          background: "linear-gradient(180deg, #FFFFFF 0%, #FFF5F8 60%, #F8E2EC 100%)",
-        }}
         className="
           relative w-full aspect-[4/5]
           max-w-[76px] sm:max-w-[84px]
           rounded-t-[45px] rounded-b-[16px] overflow-hidden
-          border border-[#F1DFE8]
-          shadow-xs
-          group-hover:shadow-md
+          bg-transparent
           group-hover:-translate-y-1
           transition-all duration-300
         "
       >
-        <div className="absolute inset-x-2 top-2 bottom-1 relative overflow-hidden rounded-t-[36px]">
-          <Image
-            src={cat.image || "/images/sremovebg.png"}
-            fill
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-            alt={cat.name}
-          />
-        </div>
+        {/* Inner container with soft gradient background & arch shape */}
+        <div 
+          style={{
+            background: "linear-gradient(180deg, #FFFFFF 0%, #FFF5F8 60%, #F8E2EC 100%)",
+          }}
+          className="absolute inset-0 rounded-t-[45px] rounded-b-[16px] border border-[#F1DFE8] shadow-xs group-hover:shadow-md overflow-hidden p-2 flex flex-col items-center justify-center transition-all duration-300"
+        >
+          <div className="absolute inset-x-2 top-2 bottom-1 relative overflow-hidden rounded-t-[36px]">
+            <Image
+              src={cat.image || "/images/sremovebg.png"}
+              fill
+              className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+              alt={cat.name}
+            />
+          </div>
 
-        {/* Subtle overlay shine */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40 pointer-events-none" />
+          {/* Subtle overlay shine */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40 pointer-events-none" />
+        </div>
       </div>
 
       {/* Label */}
