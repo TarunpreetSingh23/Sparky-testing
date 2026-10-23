@@ -16,7 +16,7 @@ export default function BeautyBannerCarousel() {
       subtitle: "Top-rated experts at your door, in under 60 minutes.",
       btnText: "Book now",
       btnHref: "/beauty",
-      image: "/images/beauty-banner.jpg",
+      image: "/images/mobile-ac.png",
     },
     {
       id: 2,
