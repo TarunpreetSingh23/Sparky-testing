@@ -745,14 +745,14 @@ setShowMap(false);
       {/* ================= MAIN CONTENT ================= */}
       <main className="px-2 sm:px-4 lg:px-6 space-y-8 pt-2">
         <section className="mt-2 px-2 sm:px-4">
-  <div className="
-    max-w-md lg:max-w-7xl mx-auto
-    p-4 sm:p-6 lg:p-7
-    rounded-[24px]
-    bg-white
-    border border-[#F1DFE8]
-    shadow-[0_4px_18px_rgba(105,43,79,0.07)]
-  ">
+ <div className="
+  max-w-md lg:max-w-7xl mx-auto
+  p-4 sm:p-6 lg:p-7
+  rounded-[24px]
+  bg-transparent
+ 
+  shadow-[0_4px_18px_rgba(105,43,79,0.07)]
+">
 
     {/* Heading */}
    
