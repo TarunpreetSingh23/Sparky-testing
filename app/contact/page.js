@@ -366,86 +366,86 @@ export default function HelpPage() {
   </div>
 
   {/* CONTACT CARDS */}
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-    {QUICK_CARDS.map((card) => {
-      const IconComp = card.icon;
+ <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+  {QUICK_CARDS.map((card) => {
+    const IconComp = card.icon;
 
-      return (
-        <div
-          key={card.id}
-          className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-[24px] border border-[#F3DCE6] bg-gradient-to-br from-white via-white to-[#FFF6FA] p-5 shadow-[0_4px_18px_rgba(194,48,107,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#E9B5CA] hover:shadow-[0_12px_28px_rgba(194,48,107,0.12)] sm:p-6"
-        >
-          {/* Subtle decorative glow */}
-          <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-[#FCE4EE]/60 blur-2xl transition-all duration-500 group-hover:bg-[#F5C8DA]/70" />
+    return (
+      <div
+        key={card.id}
+        className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-[24px] border border-[#F3DCE6] bg-gradient-to-br from-white via-white to-[#FFF6FA] p-5 shadow-[0_4px_18px_rgba(194,48,107,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#E9B5CA] hover:shadow-[0_12px_28px_rgba(194,48,107,0.12)] sm:p-6"
+      >
+        {/* Subtle decorative glow */}
+        <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-[#FCE4EE]/60 blur-2xl transition-all duration-500 group-hover:bg-[#F5C8DA]/70" />
 
-          <div className="relative z-10">
-            {/* ICON + BADGE */}
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-[#FFF0F6] to-[#F9DCE8] text-[#C2306B] shadow-[0_4px_12px_rgba(194,48,107,0.08)] transition-all duration-300 group-hover:scale-105 group-hover:from-[#E98CB0] group-hover:to-[#C2306B] group-hover:text-white group-hover:shadow-[0_6px_16px_rgba(194,48,107,0.22)]">
-                <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 to-transparent" />
-                <IconComp size={21} strokeWidth={2} className="relative z-10" />
-              </div>
-
-              <span
-                className={`inline-flex max-w-[125px] items-center justify-center rounded-full border border-[#F3DCE6] bg-white/80 px-2.5 py-1 text-center text-[9px] font-extrabold uppercase tracking-wider text-[#C2306B] ${card.badgeColor}`}
-              >
-                {card.badge}
-              </span>
+        <div className="relative z-10">
+          {/* ICON + BADGE */}
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-[#FFF0F6] to-[#F9DCE8] text-[#C2306B] shadow-[0_4px_12px_rgba(194,48,107,0.08)] transition-all duration-300 group-hover:scale-105 group-hover:from-[#E98CB0] group-hover:to-[#C2306B] group-hover:text-white group-hover:shadow-[0_6px_16px_rgba(194,48,107,0.22)]">
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 to-transparent" />
+              <IconComp size={21} strokeWidth={2} className="relative z-10" />
             </div>
 
-            {/* CARD CONTENT */}
-            <h3 className="text-[15px] font-extrabold leading-snug tracking-tight text-[#2B1B2E] transition-colors duration-300 group-hover:text-[#C2306B]">
-              {card.title}
-            </h3>
-
-            <p className="mt-1 text-xs font-medium leading-relaxed text-[#8D788D]">
-              {card.subtitle}
-            </p>
-
-            <p className="mt-3 text-xs font-bold leading-relaxed text-[#684B5A]">
-              {card.detail}
-            </p>
-          </div>
-
-          {/* CARD FOOTER */}
-          <div className="relative z-10 mt-5 flex items-center justify-between gap-2 border-t border-[#F3DCE6] pt-4">
-            <span className="min-w-0 text-[10px] font-medium leading-relaxed text-[#A38A97] sm:text-[11px]">
-              {card.meta}
+            <span
+              className={`inline-flex max-w-[125px] items-center justify-center rounded-full border border-[#F3DCE6] bg-white/80 px-2.5 py-1 text-center text-[9px] font-extrabold uppercase tracking-wider text-[#C2306B] ${card.badgeColor}`}
+            >
+              {card.badge}
             </span>
-
-            {card.external ? (
-              <a
-                href={card.actionHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
-              >
-                {card.actionText}
-                <ExternalLink size={12} />
-              </a>
-            ) : card.actionHref.startsWith("tel:") ||
-              card.actionHref.startsWith("mailto:") ? (
-              <a
-                href={card.actionHref}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
-              >
-                {card.actionText}
-                <ArrowRight size={13} />
-              </a>
-            ) : (
-              <Link
-                href={card.actionHref}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
-              >
-                {card.actionText}
-                <ArrowRight size={13} />
-              </Link>
-            )}
           </div>
+
+          {/* CARD CONTENT */}
+          <h3 className="text-[15px] font-extrabold leading-snug tracking-tight text-[#2B1B2E] transition-colors duration-300 group-hover:text-[#C2306B]">
+            {card.title}
+          </h3>
+
+          <p className="mt-1 text-xs font-medium leading-relaxed text-[#8D788D]">
+            {card.subtitle}
+          </p>
+
+          <p className="mt-3 text-xs font-bold leading-relaxed text-[#684B5A]">
+            {card.detail}
+          </p>
         </div>
-      );
-    })}
-  </div>
+
+        {/* CARD FOOTER */}
+        <div className="relative z-10 mt-5 flex items-center justify-between gap-2 border-t border-[#F3DCE6] pt-4">
+          <span className="min-w-0 text-[10px] font-medium leading-relaxed text-[#A38A97] sm:text-[11px]">
+            {card.meta}
+          </span>
+
+          {card.external ? (
+            <a
+              href={card.actionHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-[0_4px_14px_rgba(194,48,107,0.25)] transition-all duration-300 hover:shadow-[0_6px_18px_rgba(194,48,107,0.35)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 active:scale-95 sm:text-[11px]"
+            >
+              {card.actionText}
+              <ExternalLink size={12} />
+            </a>
+          ) : card.actionHref.startsWith("tel:") ||
+            card.actionHref.startsWith("mailto:") ? (
+            <a
+              href={card.actionHref}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-[0_4px_14px_rgba(194,48,107,0.25)] transition-all duration-300 hover:shadow-[0_6px_18px_rgba(194,48,107,0.35)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 active:scale-95 sm:text-[11px]"
+            >
+              {card.actionText}
+              <ArrowRight size={13} />
+            </a>
+          ) : (
+            <Link
+              href={card.actionHref}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-[0_4px_14px_rgba(194,48,107,0.25)] transition-all duration-300 hover:shadow-[0_6px_18px_rgba(194,48,107,0.35)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 active:scale-95 sm:text-[11px]"
+            >
+              {card.actionText}
+              <ArrowRight size={13} />
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  })}
+</div>
 </section>
 
       {/* =========================================================================
