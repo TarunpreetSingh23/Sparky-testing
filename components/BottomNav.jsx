@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 import {
   Home,
   Wrench,
@@ -14,6 +15,7 @@ import {
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, openLoginModal } = useAuth();
 
   const navTabs = [
     {
@@ -80,7 +82,15 @@ export default function BottomNav() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => router.push(tab.href)}
+              onClick={() => {
+                if (tab.id === "account" && !user) {
+                  openLoginModal({
+                    redirectTo: "/user",
+                  });
+                } else {
+                  router.push(tab.href);
+                }
+              }}
               aria-label={tab.label}
               aria-current={active ? "page" : undefined}
               className="group relative z-10 flex h-full flex-1 cursor-pointer flex-col items-center justify-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B] focus-visible:ring-offset-2"

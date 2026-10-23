@@ -5,7 +5,9 @@ import { jwtVerify } from "jose";
 import { connects } from "@/dbconfig/dbconfig";
 import User from "@/models/usermodel";
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "sparky-dev-secret-key-32charsmin!"
+);
 
 
 export async function GET() {

@@ -23,12 +23,14 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { CgProfile } from "react-icons/cg";
 import { BsShieldCheck } from "react-icons/bs";
+import { useAuth } from "@/context/AuthContext";
 // import { useRouter } from "next/router";
 const UserMap = dynamic(() => import("@/components/UserMap"), { ssr: false });
 export default function Navbar() {
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
   const router=useRouter();
+  const { user, openLoginModal } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [active, setActive] = useState("Home");
@@ -37,7 +39,6 @@ export default function Navbar() {
   const [navVisible, setNavVisible] = useState(true);
   const lastScrollY = useRef(0);
   const [outOfBounds, setOutOfBounds] = useState(false);
-  const [user, setUser] = useState(null);
 // const [active, setActive] = useState(mo);
   const [activeIndex, setActiveIndex] = useState(0);
 const [address, setAddress] = useState("Tap To select Address");
@@ -72,13 +73,6 @@ const isInsidePolygon = (point, polygon) => {
     setActive(name);
     setActiveIndex(index);
   };
-  /* ================= AUTH ================= */
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => setUser(data?.user || null))
-      .catch(() => setUser(null));
-  }, []);
 const checkAmritsar = (lat, lng) => {
   if (!lat || !lng) return false;
 
@@ -374,13 +368,22 @@ useEffect(() => {
               <span className="text-xs font-extrabold text-[#2B1B2E]">Bag</span>
             </Link>
 
-            <Link
-              href={user ? "/user" : "/login"}
-              className="btn-primary-pill flex items-center gap-2 px-5 py-2 text-xs"
+            <button
+              type="button"
+              onClick={() => {
+                if (user) {
+                  router.push("/user");
+                } else {
+                  openLoginModal({
+                    redirectTo: "/user",
+                  });
+                }
+              }}
+              className="btn-primary-pill flex items-center gap-2 px-5 py-2 text-xs cursor-pointer"
             >
               <User size={14} />
-              <span>{user ? (user.name || "My Account") : "Login"}</span>
-            </Link>
+              <span>{user ? (user.name || user.phone || "My Account") : "Login"}</span>
+            </button>
           </div>
         </div>
       </nav>

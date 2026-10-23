@@ -15,9 +15,11 @@ import {
 } from "react-icons/io5";
 
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function ProfilePage() {
 
 
   const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
+    await logout();
     router.push("/");
   };
 

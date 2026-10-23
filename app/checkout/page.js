@@ -10,6 +10,7 @@ import {
   X, Map as MapIcon, Calendar,Home, Pencil, Trash2,Clock, CreditCard, Sparkles,AlertTriangle,ShoppingBag,Tag,Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 const UserMap = dynamic(() => import("@/components/UserMap"), { ssr: false });
 
@@ -57,7 +58,7 @@ const InputField = ({ label, type = "text", value, onChange, error, placeholder,
 
 export default function Checkout() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, openLoginModal } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [step, setStep] = useState(1);
   const [cart, setCart] = useState([]);
@@ -119,16 +120,18 @@ const checkAmritsar = (lat, lng) => {
 };
 
 
-  /* ================= AUTH & LOGIC (UNCHANGED) ================= */
-  // useEffect(() => {
-  //   fetch("/api/me").then(res => res.json()).then(data => {
-  //     if (!data?.user) router.push("/login");
-  //     else {
-  //       setUser(data.user); setName(data.user.name || "");
-  //       setPhone(data.user.phone || ""); setloginPhone(data.user.phone);
-  //     }
-  //   }).catch(() => router.push("/login"));
-  // }, [router]);
+  /* ================= AUTH SYNC ================= */
+  useEffect(() => {
+    if (user) {
+      if (user.phone) {
+        setloginPhone(user.phone);
+        setPhone((prev) => prev || user.phone);
+      }
+      if (user.name) {
+        setName((prev) => prev || user.name);
+      }
+    }
+  }, [user]);
 const UPI_ID = "sparkyservices.in@okaxis"; // 🔴 replace with YOUR real UPI ID
 const BRAND_NAME = "SPARKY";
 const applyReferralCode = () => {
@@ -145,7 +148,22 @@ if (!validCoupons.includes(code)) {
   setReferralError("");
   setReferralDiscount(validCoupons[code]);
 };
-const startUpiPayment = () => {
+const startUpiPayment = (activeUser = null) => {
+  const currentUser = activeUser || user;
+  if (!currentUser) {
+    setShowPaymentModal(false);
+    openLoginModal({
+      onSuccess: (authenticatedUser) => {
+        if (authenticatedUser?.phone) {
+          setloginPhone(authenticatedUser.phone);
+          setPhone((prev) => prev || authenticatedUser.phone);
+        }
+        startUpiPayment(authenticatedUser);
+      },
+    });
+    return;
+  }
+
   const upiUrl =
     `upi://pay?pa=${UPI_ID}` +
     `&pn=${encodeURIComponent(BRAND_NAME)}` +
@@ -179,9 +197,30 @@ const startUpiPayment = () => {
   const nextStep = () => validateStep() 
   const prevStep = () => setStep(s => s - 1);
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (activeUser = null) => {
+    const currentUser = activeUser || user;
     if (!validateStep() || !cart.length || !date || !timeSlot) return;
+
+    if (!currentUser) {
+      setShowPaymentModal(false);
+      openLoginModal({
+        onSuccess: (authenticatedUser) => {
+          if (authenticatedUser?.phone) {
+            setloginPhone(authenticatedUser.phone);
+            setPhone((prev) => prev || authenticatedUser.phone);
+          }
+          proceedOrder(authenticatedUser);
+        },
+      });
+      return;
+    }
+
+    proceedOrder(currentUser);
+  };
+
+  const proceedOrder = async (activeUser) => {
     setIsPlacingOrder(true);
+    const resolvedLoginPhone = activeUser?.phone || loginPhone || phone;
     const formattedCart = cart.map(item => ({
       name: item.title || item.name,
       price: item.price,
@@ -197,18 +236,18 @@ const startUpiPayment = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cart: formattedCart, subtotal, discount, total,
-          customerName: name, loginPhone, phone, address, pincode,
-          coupon:referralCode.toUpperCase()  || "NULL",
+          customerName: name, loginPhone: resolvedLoginPhone, phone, address, pincode,
+          coupon: referralCode.toUpperCase() || "NULL",
           date, timeSlot, paymentMethod:
           paymentMethod === "UPI" ? "UPI (SPARKY)" : "Pay After Service", status: "pending",
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(data?.error || "Order creation failed");
       setOrderSuccess(true); setOrderId(data.orderId);
       localStorage.removeItem("cart");
     } catch (err) {
-      alert("Error placing order");
+      alert("Error placing order. Please try again.");
     } finally { setIsPlacingOrder(false); }
   };
 const getAvailableSlots = () => {
@@ -597,6 +636,19 @@ return (
     <button
       onClick={() => {
         if (date && timeSlot) {
+          if (!user) {
+            openLoginModal({
+              onSuccess: (authenticatedUser) => {
+                if (authenticatedUser?.phone) {
+                  setloginPhone(authenticatedUser.phone);
+                  setPhone((prev) => prev || authenticatedUser.phone);
+                }
+                setShowSlotPicker(false);
+                setShowPaymentModal(true);
+              },
+            });
+            return;
+          }
           setShowSlotPicker(false);
           setShowPaymentModal(true);
         }

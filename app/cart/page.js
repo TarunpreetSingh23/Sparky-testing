@@ -15,12 +15,13 @@ import {
   Sparkles
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
-  const [user, setUser] = useState(null);
+  const { user, openLoginModal } = useAuth();
   const router = useRouter();
   const [minCartError, setMinCartError] = useState("");
 
@@ -33,11 +34,6 @@ export default function CartPage() {
   };
 
   useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => setUser(data?.user || null))
-      .catch(() => setUser(null));
-
     const saved = localStorage.getItem("cart");
     if (saved) setCartItems(JSON.parse(saved));
 
@@ -60,8 +56,11 @@ export default function CartPage() {
     setMinCartError("");
 
     if (!user) {
-      toast.error("Please login to continue");
-      router.push("/login");
+      openLoginModal({
+        onSuccess: () => {
+          router.push("/checkout");
+        },
+      });
       return;
     }
 

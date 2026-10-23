@@ -118,6 +118,7 @@ export default function Login() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Invalid OTP");
+      window.dispatchEvent(new Event("sparky-auth-refresh"));
       router.push("/");
     } catch (err) {
       setMessage(err.message);

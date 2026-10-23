@@ -234,12 +234,13 @@ const isInsidePolygon = (point, polygon) => {
       try {
         const res = await fetch("/api/services");
         const data = await res.json();
-        setServices(data);
+        setServices(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching services:", error);
-      }finally {
-  setServicesLoading(false);
-}
+        setServices([]);
+      } finally {
+        setServicesLoading(false);
+      }
     };
     fetchServices();
   }, []);
@@ -330,7 +331,8 @@ const handleBooking = (service) => {
   }
 
   // Filter the services fetched from your database API
-  const filtered = services.filter((s) => {
+  const safeServices = Array.isArray(services) ? services : [];
+  const filtered = safeServices.filter((s) => {
     const serviceTitle = (s.name || s.title || "").toLowerCase();
     const serviceCategory = (s.category || "").toLowerCase();
     const searchTerm = query.toLowerCase();
@@ -505,115 +507,121 @@ setShowMap(false);
       </AnimatePresence>
       {/* ================= HEADER ================= */}
       {/* ================= MOBILE HEADER (Visible on < 1024px) ================= */}
-      <header
-        style={{ 
-          transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
-          background: 'linear-gradient(110deg, #FFF0EB 0%, #FCEAF1 55%, #F0E5FF 100%)',
-        }}
-        className="
-          lg:hidden
-          fixed top-0 left-0 right-0
-          z-50
-          px-5 pt-3 pb-4
-          rounded-b-[30px]
-          border-b border-[#F1DFE8]
-          shadow-[0_8px_24px_rgba(105,43,79,0.06)]
-          transition-transform duration-300 ease-out
-        "
-      >
-        {/* TOP ROW: Location on Left, Brand & Notification on Right */}
-        <div className="flex items-center justify-between mb-3 h-[44px]">
-          {/* LEFT — LOCATION */}
-          <div
-            onClick={() => setShowMap(true)}
-            className="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition-transform"
-          >
-            <div className="w-8 h-8 rounded-full bg-white border border-[#F1DFE8] flex items-center justify-center shadow-xs shrink-0">
-              <MapPin size={15} className="text-[#C2306B]" />
-            </div>
+     <header
+  style={{ 
+    transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
+    background: 'linear-gradient(110deg, #FFF0EB 0%, #FCEAF1 55%, #F0E5FF 100%)',
+  }}
+  className="
+    lg:hidden
+    fixed top-0 left-0 right-0
+    z-50
+    px-5 pt-3 pb-4
+    rounded-b-[30px]
+    border-b border-[#F1DFE8]
+    shadow-[0_8px_24px_rgba(105,43,79,0.06)]
+    transition-transform duration-300 ease-out
+  "
+>
+  {/* TOP ROW: Location on Left, Notification on Right */}
+  <div className="flex items-center justify-between mb-3 h-[44px]">
+    {/* LEFT — LOCATION */}
+    <div
+      onClick={() => setShowMap(true)}
+      className="flex items-center gap-3 min-w-0 cursor-pointer active:scale-95 transition-transform"
+    >
+      <div className="w-9 h-9 rounded-full bg-[#FCE3EE]/80 border border-[#F1DFE8] flex items-center justify-center shadow-xs shrink-0">
+        <MapPin size={16} className="text-[#C2306B]" />
+      </div>
 
-            <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-[13px] font-[700] text-[#2B1B2E] tracking-tight">
-                Home
-              </span>
-              <span className="text-[10px] text-[#8D788D] font-medium truncate max-w-[170px]">
-                {address}
-              </span>
-            </div>
-          </div>
-
-          {/* RIGHT — BRAND & NOTIFICATION */}
-          <div className="flex items-center gap-2">
-            <span className="text-[16px] font-[900] tracking-[0.2em] text-[#2B1B2E]">
-              SPARKY<span className="text-[#C2306B]">.</span>
-            </span>
-            <div className="w-8 h-8 rounded-full bg-white/90 border border-[#F1DFE8] flex items-center justify-center text-[#2B1B2E] shadow-xs">
-              <Bell size={15} className="text-[#2B1B2E]" />
-            </div>
-          </div>
+      <div className="flex flex-col leading-tight min-w-0">
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#8D788D]">
+            CURRENT LOCATION
+          </span>
+          <svg className="w-2.5 h-2.5 text-[#8D788D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round5" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
+        <span className="text-[14px] font-[800] text-[#2B1B2E] tracking-tight truncate max-w-[210px] mt-0.5">
+          {address}
+        </span>
+      </div>
+    </div>
 
-        {/* SEARCH & FILTER ROW */}
-        <div className="flex items-center gap-2.5">
-          <div ref={searchRef} className="relative flex-1">
-            <div className="flex items-center h-[44px] bg-white rounded-full px-4 border border-[#F1DFE8] shadow-xs">
-              <Search size={15} className="text-[#8D788D] mr-2 shrink-0" />
-              <input
-                placeholder="Search services"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 bg-transparent outline-none text-[12px] font-medium text-[#2B1B2E] placeholder:text-[#8D788D]"
+    {/* RIGHT — NOTIFICATION BELL WITH BADGE */}
+    <div className="relative flex items-center">
+      <div className="w-10 h-10 rounded-full bg-white/90 border border-[#F1DFE8] flex items-center justify-center text-[#2B1B2E] shadow-xs cursor-pointer hover:bg-white transition-colors">
+        <Bell size={17} className="text-[#2B1B2E]" />
+      </div>
+      {/* Notification Count Badge */}
+      <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#C2306B] text-[10px] font-black text-white shadow-md">
+        2
+      </span>
+    </div>
+  </div>
+
+  {/* SEARCH & FILTER ROW */}
+  <div className="flex items-center gap-2.5">
+    <div ref={searchRef} className="relative flex-1">
+      <div className="flex items-center h-[46px] bg-white rounded-full px-4 border border-[#F1DFE8] shadow-xs">
+        <Search size={16} className="text-[#8D788D] mr-2.5 shrink-0" />
+        <input
+          placeholder="Search facials, waxing, makeup..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 bg-transparent outline-none text-[13px] font-medium text-[#2B1B2E] placeholder:text-[#8D788D]"
+        />
+        {query && (
+          <X
+            size={14}
+            className="text-[#8D788D] hover:text-[#2B1B2E] cursor-pointer ml-2"
+            onClick={() => setQuery("")}
+          />
+        )}
+      </div>
+
+      {/* DROPDOWN */}
+      {open && results.length > 0 && (
+        <div className="absolute top-full mt-2 w-full bg-white rounded-[1.6rem] shadow-xl border border-[#F1DFE8] z-[999] overflow-hidden">
+          {results.map((item, i) => (
+            <div
+              key={i}
+              onClick={() => {
+                setQuery("");
+                setOpen(false);
+                setSelectedService(item);
+              }}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-[#FFF7F3] cursor-pointer transition-colors"
+            >
+              <Image
+                src={item.image || "/images/placeholder.jpg"}
+                width={40}
+                height={40}
+                className="rounded-xl object-cover"
+                alt=""
               />
-              {query && (
-                <X
-                  size={14}
-                  className="text-[#8D788D] hover:text-[#2B1B2E] cursor-pointer"
-                  onClick={() => setQuery("")}
-                />
-              )}
-            </div>
-
-            {/* DROPDOWN */}
-            {open && results.length > 0 && (
-              <div className="absolute top-full mt-2 w-full bg-white rounded-[1.6rem] shadow-xl border border-[#F1DFE8] z-[999] overflow-hidden">
-                {results.map((item, i) => (
-                  <div
-                    key={i}
-                    onClick={() => {
-                      setQuery("");
-                      setOpen(false);
-                      setSelectedService(item);
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#FFF7F3] cursor-pointer transition-colors"
-                  >
-                    <Image
-                      src={item.image || "/images/placeholder.jpg"}
-                      width={40}
-                      height={40}
-                      className="rounded-xl object-cover"
-                      alt=""
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-[#2B1B2E]">{item.name || item.title}</p>
-                      <p className="text-xs text-[#8D788D]">{item.category}</p>
-                    </div>
-                    <span className="font-extrabold text-sm text-[#C2306B]">₹{item.price}</span>
-                  </div>
-                ))}
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-[#2B1B2E]">{item.name || item.title}</p>
+                <p className="text-xs text-[#8D788D]">{item.category}</p>
               </div>
-            )}
-          </div>
-
-          {/* CIRCULAR FILTER BUTTON */}
-          <button
-            onClick={() => router.push('/beauty')}
-            className="btn-icon w-[44px] h-[44px] text-[#C2306B] shrink-0"
-            aria-label="Filter"
-          >
-            <SlidersHorizontal size={17} />
-          </button>
+              <span className="font-extrabold text-sm text-[#C2306B]">₹{item.price}</span>
+            </div>
+          ))}
         </div>
-      </header>
+      )}
+    </div>
+
+    {/* CIRCULAR FILTER BUTTON */}
+    <button
+      onClick={() => router.push('/beauty')}
+      className="w-[46px] h-[46px] rounded-full bg-white border border-[#F1DFE8] flex items-center justify-center text-[#2B1B2E] shadow-xs shrink-0 cursor-pointer hover:bg-[#FFF9FB] transition-colors active:scale-95"
+      aria-label="Filter"
+    >
+      <SlidersHorizontal size={17} className="text-[#2B1B2E]" />
+    </button>
+  </div>
+</header>
 
       {/* Spacer for fixed mobile header */}
       <div className="lg:hidden h-[116px]" />
@@ -885,7 +893,8 @@ setShowMap(false);
     "Makeup",
     
   ].map((subCat) => {
-    const filteredServices = services.filter(
+    const safeServices = Array.isArray(services) ? services : [];
+    const filteredServices = safeServices.filter(
       (item) =>
         item.category === "Woman Services" &&
         (item.name || item.title || "")
@@ -1005,7 +1014,8 @@ setShowMap(false);
     "Hair",
     "Mehndi",
   ].map((subCat) => {
-    const filteredServices = services.filter(
+    const safeServices = Array.isArray(services) ? services : [];
+    const filteredServices = safeServices.filter(
       (item) =>
         item.category === "Woman Services" &&
         (item.name || item.title || "")
