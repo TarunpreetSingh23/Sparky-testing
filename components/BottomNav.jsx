@@ -7,6 +7,7 @@ import {
   Wrench,
   Calendar,
   CircleHelp,
+  ShoppingCart,
   User,
 } from "lucide-react";
 
@@ -35,10 +36,10 @@ export default function BottomNav() {
         path === "/haute",
     },
     {
-      id: "bookings",
-      label: "Bookings",
-      href: "/bookings",
-      Icon: Calendar,
+      id: "cart",
+      label: "Cart",
+      href: "/cart",
+      Icon: ShoppingCart,
       isActive: (path) =>
         path === "/bookings" || path.startsWith("/track"),
     },

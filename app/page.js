@@ -7,9 +7,12 @@ import AboutSections from "@/components/AboutSections";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import BeautyBannerCarousel from "@/components/BeautyBannerCarosl";
+import ValueComboPackages from "@/components/Combos";
 import {
   Search,
   Sparkles,
+  Heart,
   Plus,
   Wrench,
   X,
@@ -748,22 +751,22 @@ setShowMap(false);
       <div>
         <h2 className="
           text-[18px] sm:text-xl lg:text-2xl
-          font-[800]
+          font-[800] text-center
           tracking-tight
           text-[#2B1B2E]
         ">
-          Our Specialities & Rituals
+          Our Services
         </h2>
-        <p className="text-xs text-[#8D788D] mt-0.5">Select a category to view curated treatments</p>
+        <p className="text-xs text-center text-[#8D788D] mt-0.5">Select a category to view curated treatments</p>
       </div>
 
-      <button
+      {/* <button
         onClick={() => router.push('/beauty')}
         className="text-xs font-bold text-[#C2306B] hover:text-[#A82058] flex items-center gap-1 self-start sm:self-auto transition-colors"
       >
         <span>View Full Catalog</span>
         <ChevronRight size={13} />
-      </button>
+      </button> */}
     </div>
 
     {/* Grid: 4 cols on mobile, 8 cols on laptop */}
@@ -867,7 +870,8 @@ setShowMap(false);
     </div>
   </div>
 )}
-
+ {/* SPARKY BEAUTY PROMO BANNER */}
+<BeautyBannerCarousel/>
  {/* MOBILE-ONLY BEAUTY SERVICES */}
 <section ref={beautyRef} className="pt-1 lg:hidden">
   <FloatingOrderTracker activeOrder={active} />
@@ -879,6 +883,111 @@ setShowMap(false);
     "Haircare",
     "Threading",
     "Makeup",
+    
+  ].map((subCat) => {
+    const filteredServices = services.filter(
+      (item) =>
+        item.category === "Woman Services" &&
+        (item.name || item.title || "")
+          .toLowerCase()
+          .includes(subCat.toLowerCase())
+    );
+
+    if (filteredServices.length === 0) return null;
+
+    const displayServices = filteredServices.slice(0, 3);
+
+    return (
+      <div key={subCat} className="mb-7">
+        {/* CATEGORY HEADER */}
+        <div className="mb-3 flex items-center justify-between px-3">
+          <h3 className="flex items-center gap-2 text-[15px] font-extrabold tracking-tight text-[#2B1B2E]">
+            <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#E98CB0] to-[#A51F56]" />
+            {subCat}
+          </h3>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push(
+                `/beauty?category=${encodeURIComponent(subCat.toUpperCase())}`
+              )
+            }
+            className="inline-flex items-center gap-1 rounded-full border border-[#C2306B]/15 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#C2306B] shadow-sm backdrop-blur-md transition-colors hover:bg-[#FFF0F6]"
+          >
+            View All
+            <ChevronRight size={13} />
+          </button>
+        </div>
+
+        {/* MAXIMUM 3 CARDS PER ROW */}
+      <div className="grid grid-cols-3 gap-3 px-2 sm:px-4">
+  {displayServices.map((item) => {
+    const image =
+      item.image || item.imageUrl || item.thumbnail || item.photo;
+    const title = item.name || item.title || subCat;
+
+    return (
+      <div
+        key={item.id}
+        onClick={() => setSelectedService(item)}
+        className="group min-w-0 overflow-hidden rounded-[20px] border border-[#F3E8ED] bg-white p-2.5 shadow-[0_3px_12px_rgba(194,48,107,0.04)] transition-all duration-300 active:scale-[0.98]"
+      >
+        {/* Image */}
+        <div className="relative aspect-[4/4.3] overflow-hidden rounded-[14px] bg-[#FCEEF4]">
+          {image ? (
+            <img
+              src={image}
+              alt={title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Wrench className="text-[#C2306B]/40" size={25} />
+            </div>
+          )}
+
+          {/* Gradient + Add button */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#321321]/10 to-transparent" />
+
+          <button
+            type="button"
+            aria-label={`Select ${title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedService(item);
+            }}
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-xl border border-white/60 bg-gradient-to-br from-[#E98CB0] via-[#C2306B] to-[#A51F56] text-white shadow-[0_4px_12px_rgba(194,48,107,0.25)] transition-transform hover:scale-105 active:scale-90"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Title */}
+        <h4 className="mt-3 min-h-[30px] line-clamp-2 text-[11px] font-bold leading-[1.4] text-[#2B1B2E]">
+          {title}
+        </h4>
+
+        {/* Bottom detail placeholders */}
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <span className="h-2 w-12 rounded-full bg-[#FCEEF4]" />
+          <span className="h-2 w-5 rounded-full bg-[#FCEEF4]" />
+        </div>
+      </div>
+    );
+  })}
+</div>
+      </div>
+    );
+  })}
+</section>
+<ValueComboPackages/>
+<section ref={beautyRef} className="pt-1 lg:hidden">
+  <FloatingOrderTracker activeOrder={active} />
+
+  {[
+    
     "Bleach",
     "Cleanup",
     "Manicure",
@@ -896,7 +1005,7 @@ setShowMap(false);
 
     if (filteredServices.length === 0) return null;
 
-    const displayServices = filteredServices.slice(0, 6);
+    const displayServices = filteredServices.slice(0, 3);
 
     return (
       <div key={subCat} className="mb-7">
