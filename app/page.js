@@ -1018,7 +1018,42 @@ setShowMap(false);
     const displayServices = filteredServices.slice(0, 3);
 
     return (
-      <div
+      <div key={subCat} className="mb-7">
+  {/* CATEGORY HEADER */}
+  <div className="mb-3 flex items-center justify-between px-3">
+    <h3 className="flex items-center gap-2 text-[15px] font-extrabold tracking-tight text-[#2B1B2E]">
+      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#E98CB0] to-[#A51F56]" />
+      {subCat}
+    </h3>
+
+    <button
+      type="button"
+      onClick={() =>
+        router.push(
+          `/beauty?category=${encodeURIComponent(subCat.toUpperCase())}`
+        )
+      }
+      className="inline-flex items-center gap-1 rounded-full border border-[#C2306B]/15 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#C2306B] shadow-sm backdrop-blur-md transition-colors hover:bg-[#FFF0F6]"
+    >
+      View All
+      <ChevronRight size={13} />
+    </button>
+  </div>
+
+  {/* MAXIMUM 3 CARDS PER ROW */}
+  <div className="grid grid-cols-3 gap-3 px-2 sm:px-4">
+    {displayServices.map((item) => {
+      const image =
+        item.image || item.imageUrl || item.thumbnail || item.photo;
+      const title = item.name || item.title || subCat;
+
+      const price =
+        Number(String(item.price ?? 0).replace(/[₹,\s]/g, "")) || 0;
+
+      const originalPrice = Math.round(price * 1.2);
+
+      return (
+        <div
           key={item.id}
           onClick={() => setSelectedService(item)}
           className="group min-w-0 overflow-hidden rounded-[20px] border border-[#F3E8ED] bg-white p-2.5 shadow-[0_3px_12px_rgba(194,48,107,0.04)] transition-all duration-300 active:scale-[0.98]"
@@ -1070,6 +1105,10 @@ setShowMap(false);
             </span>
           </div>
         </div>
+      );
+    })}
+  </div>
+</div>
     );
   })}
 </section>
