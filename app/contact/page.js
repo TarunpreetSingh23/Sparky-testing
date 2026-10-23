@@ -270,143 +270,183 @@ export default function HelpPage() {
       {/* =========================================================================
           2. HERO BANNER CARD WITH LIVE SEARCH
           ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10">
-        <div className="relative rounded-[2.5rem] bg-gradient-to-br from-[#C2306B] via-[#2F3E2E] to-[#1E291D] text-white p-6 sm:p-10 lg:p-14 overflow-hidden shadow-2xl shadow-[#C2306B]/20">
-          {/* Subtle Ambient Background Gradients */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#F7B614]/10 rounded-full blur-3xl pointer-events-none -translate-y-20 translate-x-20" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full blur-2xl pointer-events-none -translate-x-16 translate-y-16" />
+     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10">
+  <div className="relative rounded-[2.5rem] bg-gradient-to-br from-[#C2306B] via-[#A51F56] to-[#2B1B2E] text-white p-6 sm:p-10 lg:p-14 overflow-hidden shadow-2xl shadow-[#C2306B]/20">
 
-          <div className="relative z-10 max-w-2xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold uppercase tracking-wider text-[#F7B614]">
-              <Sparkles size={14} />
-              <span>Dedicated Customer Assistance</span>
-            </div>
+    {/* Subtle Ambient Background Gradients */}
+    <div className="absolute top-0 right-0 w-96 h-96 bg-[#E98CB0]/20 rounded-full blur-3xl pointer-events-none -translate-y-20 translate-x-20" />
+    <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/10 rounded-full blur-2xl pointer-events-none -translate-x-16 translate-y-16" />
 
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-[900] tracking-tight leading-tight">
-              How can our concierge <br className="hidden sm:block" />
-              <span className="text-[#F7B614] italic">assist you</span> today?
-            </h2>
+    <div className="relative z-10 max-w-2xl mx-auto text-center space-y-4">
 
-            <p className="text-xs sm:text-sm text-white/80 max-w-lg mx-auto leading-relaxed font-medium">
-              Get immediate help with bookings, technician dispatch, refunds, or safety support.
-            </p>
+      {/* Glass Badge */}
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider text-[#FFD5E5]">
+        <Sparkles size={14} />
+        <span>Dedicated Customer Assistance</span>
+      </div>
 
-            {/* Smart Search Card Input */}
-            <div className="pt-2">
-              <div className="relative max-w-xl mx-auto">
-                <Search
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search questions, tracking, invoices, refunds..."
-                  className="w-full pl-11 pr-10 py-3.5 sm:py-4 rounded-2xl bg-white text-[#2B1B2E] placeholder-gray-400 text-xs sm:text-sm font-semibold shadow-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#F7B614] transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* Heading */}
+      <h2 className="text-2xl sm:text-4xl lg:text-5xl font-[900] tracking-tight leading-tight">
+        How can our concierge <br className="hidden sm:block" />
+        <span className="text-[#FFD5E5] italic">assist you</span> today?
+      </h2>
+
+      {/* Description */}
+      <p className="text-xs sm:text-sm text-white/80 max-w-lg mx-auto leading-relaxed font-medium">
+        Get immediate help with bookings, technician dispatch, refunds, or safety support.
+      </p>
+
+      {/* Smart Search Input */}
+      <div className="pt-2">
+        <div className="relative max-w-xl mx-auto">
+
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C2306B]"
+          />
+
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search questions, tracking, invoices, refunds..."
+            className="w-full pl-11 pr-10 py-3.5 sm:py-4 rounded-2xl bg-white/95 backdrop-blur-xl text-[#2B1B2E] placeholder-[#A38A97] text-xs sm:text-sm font-semibold shadow-[0_8px_25px_rgba(43,27,46,0.15)] border border-white/50 focus:outline-none focus:ring-2 focus:ring-[#E98CB0] transition-all"
+          />
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#A38A97] hover:text-[#C2306B] rounded-full transition-colors"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
-      </section>
+      </div>
+
+    </div>
+
+    {/* Bottom Glass Highlight */}
+    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+  </div>
+</section>
 
       {/* =========================================================================
           3. QUICK ASSISTANCE CARDS GRID
           ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#8D788D]">
-              Instant Channels
-            </span>
-            <h2 className="text-xl lg:text-2xl font-[900] text-[#2B1B2E] tracking-tight">
-              Connect With Us
-            </h2>
-          </div>
-          <span className="text-xs text-[#8D788D] font-semibold">
-            Typical resolution within 5 minutes
-          </span>
-        </div>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+  {/* SECTION HEADER */}
+  <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#C2306B]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#C2306B]" />
+        Instant Channels
+      </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {QUICK_CARDS.map((card) => {
-            const IconComp = card.icon;
-            return (
-              <div
-                key={card.id}
-                className="group relative bg-white rounded-3xl p-6 border border-[#F1DFE8] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#FFF7F3] group-hover:bg-[#C2306B] text-[#C2306B] group-hover:text-white transition-all flex items-center justify-center shadow-inner">
-                      <IconComp size={22} />
-                    </div>
-                    <span
-                      className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full ${card.badgeColor}`}
-                    >
-                      {card.badge}
-                    </span>
-                  </div>
+      <h2 className="text-2xl font-black tracking-tight text-[#2B1B2E] sm:text-3xl">
+        Connect With Us
+      </h2>
 
-                  <h3 className="text-base font-extrabold text-[#2B1B2E] group-hover:text-[#C2306B] transition-colors leading-snug">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs font-semibold text-[#8D788D] mt-0.5">
-                    {card.subtitle}
-                  </p>
-                  <p className="text-xs font-extrabold text-[#2B1B2E] mt-2">
-                    {card.detail}
-                  </p>
-                </div>
+      <p className="mt-1.5 max-w-md text-xs leading-relaxed text-[#8D788D] sm:text-sm">
+        We're here to help with bookings, questions, and anything you need.
+      </p>
+    </div>
 
-                <div className="pt-4 mt-4 border-t border-[#FCEAF1] flex items-center justify-between">
-                  <span className="text-[11px] text-gray-400 font-medium">
-                    {card.meta}
-                  </span>
+    <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#F3DCE6] bg-white/80 px-3.5 py-2 shadow-[0_2px_10px_rgba(194,48,107,0.05)] backdrop-blur-md">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E98CB0] opacity-50" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C2306B]" />
+      </span>
 
-                  {card.external ? (
-                    <a
-                      href={card.actionHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-black text-[#C2306B] group-hover:text-[#F7B614] transition-all"
-                    >
-                      <span>{card.actionText}</span>
-                      <ExternalLink size={12} />
-                    </a>
-                  ) : card.actionHref.startsWith("tel:") ||
-                    card.actionHref.startsWith("mailto:") ? (
-                    <a
-                      href={card.actionHref}
-                      className="inline-flex items-center gap-1 text-xs font-black text-[#C2306B] group-hover:text-[#F7B614] transition-all"
-                    >
-                      <span>{card.actionText}</span>
-                      <ArrowRight size={13} />
-                    </a>
-                  ) : (
-                    <Link
-                      href={card.actionHref}
-                      className="inline-flex items-center gap-1 text-xs font-black text-[#C2306B] group-hover:text-[#F7B614] transition-all"
-                    >
-                      <span>{card.actionText}</span>
-                      <ArrowRight size={13} />
-                    </Link>
-                  )}
-                </div>
+      <span className="text-[10px] font-semibold text-[#684B5A] sm:text-xs">
+        Typical resolution within 5 minutes
+      </span>
+    </div>
+  </div>
+
+  {/* CONTACT CARDS */}
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+    {QUICK_CARDS.map((card) => {
+      const IconComp = card.icon;
+
+      return (
+        <div
+          key={card.id}
+          className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-[24px] border border-[#F3DCE6] bg-gradient-to-br from-white via-white to-[#FFF6FA] p-5 shadow-[0_4px_18px_rgba(194,48,107,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#E9B5CA] hover:shadow-[0_12px_28px_rgba(194,48,107,0.12)] sm:p-6"
+        >
+          {/* Subtle decorative glow */}
+          <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-[#FCE4EE]/60 blur-2xl transition-all duration-500 group-hover:bg-[#F5C8DA]/70" />
+
+          <div className="relative z-10">
+            {/* ICON + BADGE */}
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-[#FFF0F6] to-[#F9DCE8] text-[#C2306B] shadow-[0_4px_12px_rgba(194,48,107,0.08)] transition-all duration-300 group-hover:scale-105 group-hover:from-[#E98CB0] group-hover:to-[#C2306B] group-hover:text-white group-hover:shadow-[0_6px_16px_rgba(194,48,107,0.22)]">
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 to-transparent" />
+                <IconComp size={21} strokeWidth={2} className="relative z-10" />
               </div>
-            );
-          })}
+
+              <span
+                className={`inline-flex max-w-[125px] items-center justify-center rounded-full border border-[#F3DCE6] bg-white/80 px-2.5 py-1 text-center text-[9px] font-extrabold uppercase tracking-wider text-[#C2306B] ${card.badgeColor}`}
+              >
+                {card.badge}
+              </span>
+            </div>
+
+            {/* CARD CONTENT */}
+            <h3 className="text-[15px] font-extrabold leading-snug tracking-tight text-[#2B1B2E] transition-colors duration-300 group-hover:text-[#C2306B]">
+              {card.title}
+            </h3>
+
+            <p className="mt-1 text-xs font-medium leading-relaxed text-[#8D788D]">
+              {card.subtitle}
+            </p>
+
+            <p className="mt-3 text-xs font-bold leading-relaxed text-[#684B5A]">
+              {card.detail}
+            </p>
+          </div>
+
+          {/* CARD FOOTER */}
+          <div className="relative z-10 mt-5 flex items-center justify-between gap-2 border-t border-[#F3DCE6] pt-4">
+            <span className="min-w-0 text-[10px] font-medium leading-relaxed text-[#A38A97] sm:text-[11px]">
+              {card.meta}
+            </span>
+
+            {card.external ? (
+              <a
+                href={card.actionHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
+              >
+                {card.actionText}
+                <ExternalLink size={12} />
+              </a>
+            ) : card.actionHref.startsWith("tel:") ||
+              card.actionHref.startsWith("mailto:") ? (
+              <a
+                href={card.actionHref}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
+              >
+                {card.actionText}
+                <ArrowRight size={13} />
+              </a>
+            ) : (
+              <Link
+                href={card.actionHref}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F3DCE6] bg-white px-3 py-2 text-[10px] font-extrabold text-[#C2306B] shadow-sm transition-all duration-300 hover:border-[#C2306B]/30 hover:bg-[#FFF0F6] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B]/40 sm:text-[11px]"
+              >
+                {card.actionText}
+                <ArrowRight size={13} />
+              </Link>
+            )}
+          </div>
         </div>
-      </section>
+      );
+    })}
+  </div>
+</section>
 
       {/* =========================================================================
           4. TWO-COLUMN LANDSCAPE WORKSPACE: FAQ CARDS + TICKET DISPATCH CARD
