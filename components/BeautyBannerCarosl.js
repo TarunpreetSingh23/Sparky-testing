@@ -7,7 +7,7 @@ export default function BeautyBannerCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // 2 Distinct Scrollable Banner Data matching the clean layout in the reference screenshot
+  // 3 Distinct Banner Data tailored to your theme, styled like the reference screenshot
   const banners = [
     {
       id: 1,
@@ -20,12 +20,21 @@ export default function BeautyBannerCarousel() {
     },
     {
       id: 2,
-      title1: "Glow more.",
-      title2: "Spend less.",
-      subtitle: "Exclusive salon packages customized just for your wellness.",
-      btnText: "Explore offers",
-      btnHref: "/beauty/offers",
+      title1: "Expert care,",
+      title2: "Zero hassle.",
+      subtitle: "Professional stylists and premium products delivered to your home.",
+      btnText: "Book a session",
+      btnHref: "/beauty/book",
       image: "/images/beauty-banner-2.jpg",
+    },
+    {
+      id: 3,
+      title1: "Radiant skin,",
+      title2: "Special treats.",
+      subtitle: "Unwind with customized facials and spa treatments curated for you.",
+      btnText: "Claim offers",
+      btnHref: "/offers",
+      image: "/images/beauty-banner-3.jpg",
     },
   ];
 
@@ -40,9 +49,8 @@ export default function BeautyBannerCarousel() {
 
   return (
     <section className="w-full px-3 pt-3 sm:px-5 lg:px-8">
-      {/* Outer Transparent or Clean Container */}
       <div 
-        className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-white border border-[#F1DFE8] shadow-[0_8px_30px_rgba(105,43,79,0.06)]"
+        className="relative mx-auto max-w-7xl overflow-hidden rounded-[28px] bg-white border border-[#F3DCE6] shadow-[0_8px_30px_rgba(194,48,107,0.08)]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -57,20 +65,20 @@ export default function BeautyBannerCarousel() {
                 
                 {/* LEFT CONTENT */}
                 <div className="flex flex-col justify-center px-6 py-6 sm:px-8 lg:px-10 z-10">
-                  <h2 className="text-[28px] sm:text-[34px] font-black leading-[1.08] tracking-tight text-[#2B1B2E]">
+                  <h2 className="text-[26px] sm:text-[32px] font-black leading-[1.1] tracking-tight text-[#2B1B2E]">
                     {banner.title1}
                     <br />
                     {banner.title2}
                   </h2>
 
-                  <p className="mt-2 text-xs sm:text-sm font-medium leading-relaxed text-[#8D788D] max-w-[260px]">
+                  <p className="mt-2 text-xs sm:text-sm font-medium leading-relaxed text-[#8D788D] max-w-[270px]">
                     {banner.subtitle}
                   </p>
 
                   <div className="mt-5">
                     <Link
                       href={banner.btnHref}
-                      className="inline-flex items-center justify-center rounded-full bg-white border border-[#F1DFE8] px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-[#2B1B2E] shadow-[0_4px_12px_rgba(105,43,79,0.08)] transition-all duration-300 hover:bg-[#FFF4F8] hover:text-[#C2306B] hover:border-[#E98CB0] active:scale-95"
+                      className="inline-flex items-center justify-center rounded-full bg-white border border-[#F3DCE6] px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-[#2B1B2E] shadow-[0_4px_12px_rgba(194,48,107,0.08)] transition-all duration-300 hover:bg-[#FFF4F8] hover:text-[#C2306B] hover:border-[#E98CB0] active:scale-95 cursor-pointer"
                     >
                       {banner.btnText}
                     </Link>
@@ -82,18 +90,18 @@ export default function BeautyBannerCarousel() {
                   <div 
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{
-                      borderTopLeftRadius: "120px",
-                      borderBottomLeftRadius: "40px",
+                      borderTopLeftRadius: "130px",
+                      borderBottomLeftRadius: "50px",
                       overflow: "hidden"
                     }}
                   >
                     <img
                       src={banner.image}
-                      alt=""
+                      alt={banner.title1}
                       className="absolute inset-0 h-full w-full object-cover object-center"
                     />
                     {/* Soft Pink Blending Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-transparent sm:from-white/80 sm:via-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-transparent sm:from-white/70 sm:via-transparent" />
                   </div>
                 </div>
 
@@ -109,7 +117,7 @@ export default function BeautyBannerCarousel() {
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                currentIndex === idx ? "w-5 bg-[#C2306B]" : "w-1.5 bg-[#F1DFE8] hover:bg-[#C2306B]/50"
+                currentIndex === idx ? "w-5 bg-[#C2306B]" : "w-1.5 bg-[#F3DCE6] hover:bg-[#C2306B]/50"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
