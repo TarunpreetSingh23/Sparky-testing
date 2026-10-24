@@ -766,36 +766,33 @@ setShowMap(false);
       onClick={() => handleWantClick(cat.name)}
       className="group flex flex-col items-center gap-2 p-1.5 rounded-2xl transition-all cursor-pointer"
     >
-      {/* Arch Shaped Image Tile with Transparent Wrapper & Soft Gradient Card Inside */}
+      {/* Arch Shaped Image Tile with Soft Gradient */}
       <div 
+        style={{
+          background: "linear-gradient(180deg, #FFFFFF 0%, #FFF5F8 60%, #F8E2EC 100%)",
+        }}
         className="
           relative w-full aspect-[4/5]
           max-w-[76px] sm:max-w-[84px]
           rounded-t-[45px] rounded-b-[16px] overflow-hidden
-          bg-transparent
+          border border-[#F1DFE8]
+          shadow-xs group-hover:shadow-md
           group-hover:-translate-y-1
           transition-all duration-300
         "
       >
-        {/* Inner container with soft gradient background & arch shape */}
-        <div 
-          style={{
-            background: "linear-gradient(180deg, #FFFFFF 0%, #FFF5F8 60%, #F8E2EC 100%)",
-          }}
-          className="absolute inset-0 rounded-t-[45px] rounded-b-[16px] border border-[#F1DFE8] shadow-xs group-hover:shadow-md overflow-hidden p-2 flex flex-col items-center justify-center transition-all duration-300"
-        >
-          <div className="absolute inset-x-2 top-2 bottom-1 relative overflow-hidden rounded-t-[36px]">
-            <Image
-              src={cat.image || "/images/sremovebg.png"}
-              fill
-              className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-              alt={cat.name}
-            />
-          </div>
-
-          {/* Subtle overlay shine */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40 pointer-events-none" />
+        <div className="absolute inset-1.5 sm:inset-2 overflow-hidden rounded-t-[38px] rounded-b-[12px]">
+          <Image
+            src={cat.image || "/images/sremovebg.png"}
+            fill
+            sizes="(max-width: 640px) 76px, 84px"
+            className="object-contain object-center group-hover:scale-105 transition-transform duration-300 p-0.5"
+            alt={cat.name}
+          />
         </div>
+
+        {/* Subtle overlay shine */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#C2306B]/5 to-transparent opacity-40 pointer-events-none" />
       </div>
 
       {/* Label */}
