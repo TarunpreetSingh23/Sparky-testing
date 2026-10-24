@@ -474,24 +474,39 @@ export default function HelpPage() {
               </div>
 
               {/* Category Filter Chips */}
-              <div className="flex overflow-x-auto  gap-2 pb-1 scroll-smooth">
-                {FAQ_CATEGORIES.map((cat) => {
-                  const isActive = selectedCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all duration-300 ${
-                        isActive
-                          ? "btn-primary-pill"
-                          : "btn-secondary-pill text-[#8D788D]"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="flex w-full items-center gap-2.5 overflow-x-auto overscroll-x-contain px-4 py-3 scroll-smooth no-scrollbar"
+  style={{
+    WebkitOverflowScrolling: "touch",
+    scrollbarWidth: "none",
+  }}
+>
+  {FAQ_CATEGORIES.map((cat) => {
+    const isActive = selectedCategory === cat;
+    return (
+      <button
+        key={cat}
+        type="button"
+        onClick={() => setSelectedCategory(cat)}
+        className={`
+          relative flex h-[42px] shrink-0 items-center justify-center
+          rounded-full px-5 py-2
+          text-xs font-black uppercase tracking-wider
+          whitespace-nowrap leading-none
+          transition-all duration-300 active:scale-95 cursor-pointer
+          focus-visible:outline-none focus-visible:ring-2
+          focus-visible:ring-[#C2306B]/40
+          ${
+            isActive
+              ? "bg-[#2B1B2E] text-white shadow-[0_4px_14px_rgba(43,27,46,0.2)] border border-transparent"
+              : "bg-white text-[#2B1B2E] border border-[#F3DCE6] shadow-[0_2px_8px_rgba(194,48,107,0.04)] hover:border-[#E98CB0] hover:bg-[#FFF9FB]"
+          }
+        `}
+      >
+        <span className="relative z-10">{cat}</span>
+      </button>
+    );
+  })}
+</div>
 
               {/* FAQ Cards Accordion */}
               {filteredFaqs.length === 0 ? (
