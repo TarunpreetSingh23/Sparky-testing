@@ -86,14 +86,14 @@ const STATIC_SERVICES = [
   { title: "AC Repair", price: 499, image: "/images/ac.jpg", link: "/services/ac-repair" },
 ];
 const want = [
-  { id: 1, name: 'Pedicure', icon: Scissors,image:"/images/pedicure.png" },
-  { id: 2, name: 'Manicure', icon: Zap,image:"/images/manicure.png" },
-  { id: 3, name: 'Facial', icon: Sparkles,image:"/images/facial.png" },
-  { id: 4, name: 'Bleach', icon: Palette,image:"/images/bleach.png" },
-  { id: 5, name: 'Cleanup', icon: Waves,image:"/images/cleanup.png" },
-  { id: 6, name: 'Waxing', icon: Wind ,image:"/images/waxing.png"},
-  { id: 7, name: 'Makeup', icon: Smile,image:"/images/makeup.png" },
-  { id: 8, name: 'Hair', icon: MessageCircle, image:"/images/hair.png"},
+  { id: 1, name: 'Pedicure', icon: Scissors,image:"/images/CATEGORY-ICONS/pedicure.png" },
+  { id: 2, name: 'Manicure', icon: Zap,image:"/images/CATEGORY-ICONS/manicure.png" },
+  { id: 3, name: 'Facial', icon: Sparkles,image:"/images/CATEGORY-ICONS/facial.png" },
+  { id: 4, name: 'Bleach', icon: Palette,image:"/images/CATEGORY-ICONS/bleach.png" },
+  { id: 5, name: 'Cleanup', icon: Waves,image:"/images/CATEGORY-ICONS/cleanup.png" },
+  { id: 6, name: 'Waxing', icon: Wind ,image:"/images/CATEGORY-ICONS/waxing.png"},
+  { id: 7, name: 'Makeup', icon: Smile,image:"/images/CATEGORY-ICONS/makeup.png" },
+  { id: 8, name: 'Hair', icon: MessageCircle, image:"/images/CATEGORY-ICONS/hair.png"},
   // { id: 7, name: 'Hair', icon: Smile },
   // { id: 8, name: 'Mehndi', icon: MessageCircle },
 ];
