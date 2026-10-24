@@ -474,7 +474,7 @@ export default function HelpPage() {
               </div>
 
               {/* Category Filter Chips */}
-              <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 scroll-smooth">
+              <div className="flex overflow-x-auto  gap-2 pb-1 scroll-smooth">
                 {FAQ_CATEGORIES.map((cat) => {
                   const isActive = selectedCategory === cat;
                   return (
