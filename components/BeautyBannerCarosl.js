@@ -61,7 +61,7 @@ export default function BeautyBannerCarousel() {
         >
           {banners.map((banner) => (
             <div key={banner.id} className="min-w-full flex-shrink-0 relative">
-              <div className="grid grid-cols-1 sm:grid-cols-2 items-center min-h-[220px] sm:min-h-[250px]">
+              <div className="grid grid-cols-2 sm:grid-cols-2 items-center min-h-[220px] sm:min-h-[250px]">
                 
                 {/* LEFT CONTENT */}
                 <div className="flex flex-col justify-center px-6 py-6 sm:px-8 lg:px-10 z-10">
