@@ -1,128 +1,137 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
-import { Sparkles, Home, Scissors, Wrench, PartyPopper, Check } from "lucide-react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
-export default function MobileCategoryStrip({ activeCategory = "all", onSelectCategory = null }) {
+export default function MobileCategoryStrip({
+  activeCategory = "all",
+  onSelectCategory = null,
+}) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Existing core Sparky service categories
   const categories = [
     {
-      id: "all",
-      name: "All Services",
-      image: "/images/sremovebg.png",
-      href: "/",
-      isHome: true,
-    },
-    {
       id: "beauty",
-      name: "Salon & Beauty",
+      name: "Facials",
       image: "/images/CATEGORY-ICONS/facial.png",
-      href: "/beauty",
+      href: "/beauty?category=FACIAL",
     },
     {
       id: "clean",
-      name: "Home Cleaning",
+      name: "Cleanup",
       image: "/images/CATEGORY-ICONS/cleanup.png",
-      href: "/clean",
+      href: "/beauty?category=CLEANUP",
     },
     {
       id: "eventdecor",
-      name: "Event Decor",
+      name: "Makeup",
       image: "/images/CATEGORY-ICONS/makeup.png",
-      href: "/eventdecor",
+      href: "/beauty?category=MAKEUP",
     },
     {
       id: "haute",
-      name: "Boutique",
+      name: "Waxing",
       image: "/images/CATEGORY-ICONS/waxing.png",
-      href: "/haute",
-    },
-    {
-      id: "ac-repair",
-      name: "AC & Repairs",
-      image: "/images/mobile-ac.png",
-      href: "/services/ac-repair",
+      href: "/beauty?category=WAXING",
     },
     {
       id: "hair",
-      name: "Hair & Spa",
+      name: "Hair",
       image: "/images/CATEGORY-ICONS/hair.png",
       href: "/beauty?category=HAIR",
     },
     {
       id: "manicure",
-      name: "Nails & Mani",
+      name: "Nails",
       image: "/images/CATEGORY-ICONS/manicure.png",
       href: "/beauty?category=MANICURE",
     },
   ];
 
+  const currentCategory = searchParams.get("category");
+
   const handleCategoryClick = (cat) => {
-    if (onSelectCategory && cat.isHome) {
-      onSelectCategory("all");
-    } else if (onSelectCategory && !cat.href.startsWith("/clean") && !cat.href.startsWith("/eventdecor") && !cat.href.startsWith("/haute") && !cat.href.startsWith("/services/")) {
+    if (onSelectCategory && pathname === "/") {
       onSelectCategory(cat.id);
-    } else {
-      router.push(cat.href);
+      return;
     }
+
+    router.push(cat.href);
   };
 
   return (
     <nav
-      aria-label="Category Navigation"
-      className="block md:hidden w-full bg-white border-b border-[#EAE7E9] py-2.5 shadow-[0_2px_8px_rgba(37,35,42,0.02)]"
+      aria-label="Beauty service categories"
+      className="block md:hidden w-full overflow-hidden border-b border-[#F0EAED] bg-white"
     >
-      <div className="flex items-center gap-3 overflow-x-auto px-3.5 no-scrollbar scroll-smooth">
+      <div
+        className="flex w-full items-start justify-between gap-1 px-2 pt-3 pb-2"
+        style={{ scrollbarWidth: "none" }}
+      >
         {categories.map((cat) => {
           const isActive =
             activeCategory === cat.id ||
-            (cat.href !== "/" && pathname === cat.href) ||
-            (cat.id === "all" && pathname === "/" && activeCategory === "all");
+            (pathname === "/beauty" &&
+              currentCategory?.toLowerCase() ===
+                cat.href.split("category=")[1].toLowerCase());
 
           return (
             <button
               key={cat.id}
               type="button"
               onClick={() => handleCategoryClick(cat)}
-              className="flex shrink-0 flex-col items-center gap-1.5 focus:outline-none cursor-pointer group"
+              aria-label={`Explore ${cat.name}`}
+              aria-pressed={isActive}
+              className="group relative flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B] focus-visible:ring-offset-2"
             >
-              {/* Icon Container with active border and subtle indicator */}
-              <div
-                className={`relative flex h-[58px] w-[58px] items-center justify-center rounded-[18px] transition-all duration-200 ${
+              <motion.div
+                animate={{ scale: isActive ? 1.03 : 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 350,
+                  damping: 25,
+                }}
+                className={`relative h-[clamp(42px,12vw,54px)] w-[clamp(42px,12vw,54px)] shrink-0 overflow-hidden rounded-full border bg-[#FAF7F8] ${
                   isActive
-                    ? "bg-[#FFF0F6] border-2 border-[#C2306B] shadow-[0_2px_10px_rgba(194,48,107,0.18)]"
-                    : "bg-[#F7F7F5] border border-[#EAE7E9] group-hover:bg-[#F2EFF1]"
+                    ? "border-[#C2306B]"
+                    : "border-[#F0EAED]"
                 }`}
               >
-                <div className="relative h-9 w-9 overflow-hidden">
-                  <Image
-                    src={cat.image}
-                    alt={cat.name}
-                    fill
-                    sizes="40px"
-                    className="object-contain"
-                  />
-                </div>
+                <Image
+                  src={cat.image}
+                  alt=""
+                  fill
+                  sizes="54px"
+                  className="object-cover"
+                />
+              </motion.div>
 
-                {/* Subtle active checkmark or indicator dot */}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-4 rounded-full bg-[#C2306B]" />
-                )}
-              </div>
-
-              {/* Label */}
               <span
-                className={`text-[11px] font-bold text-center tracking-tight max-w-[62px] leading-tight ${
-                  isActive ? "text-[#C2306B]" : "text-[#25232A]"
+                className={`max-w-full truncate text-center text-[10px] min-[380px]:text-[11px] leading-tight ${
+                  isActive
+                    ? "font-semibold text-[#C2306B]"
+                    : "font-medium text-[#514B52]"
                 }`}
               >
                 {cat.name}
               </span>
+
+              <div className="relative h-[2px] w-full">
+                {isActive && (
+                  <motion.span
+                    layoutId="sparky-category-indicator"
+                    className="absolute left-1/2 top-0 h-[2px] w-7 -translate-x-1/2 rounded-full bg-[#C2306B]"
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 32,
+                    }}
+                  />
+                )}
+              </div>
             </button>
           );
         })}
