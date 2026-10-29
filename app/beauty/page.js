@@ -481,16 +481,7 @@ export default function BeautyServicesPage() {
       {/* =========================================================================
           B. PAGE TITLE & INTRODUCTORY SECTION
           ========================================================================= */}
-      <section className="bg-gradient-to-b from-white via-[#FCF1F5]/40 to-transparent px-4 pt-3 pb-2 border-b border-[#F9E3EC]/50">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-xl sm:text-2xl font-[950] tracking-tight text-[#25232A]">
-            Beauty Services
-          </h1>
-          <p className="mt-0.5 text-xs text-[#77717A] font-medium">
-            Your favourite beauty treatments, delivered with salon hygiene at your doorstep.
-          </p>
-        </div>
-      </section>
+      
 
       {/* =========================================================================
           C. HORIZONTAL CATEGORY NAVIGATION STRIP
