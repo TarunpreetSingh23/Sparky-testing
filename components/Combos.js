@@ -1,15 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { Star, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Star, Check, Plus, Minus } from "lucide-react";
 
 export default function ValueComboPackages() {
-  // Track added state for each combo item
-  const [addedItems, setAddedItems] = useState({});
-
-  const handleAdd = (id) => {
-    setAddedItems((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const [cartQuantities, setCartQuantities] = useState({});
 
   const combos = [
     {
@@ -20,7 +15,7 @@ export default function ValueComboPackages() {
       reviews: 890,
       price: 1199,
       originalPrice: 1599,
-      image: "/images/beauty-banner.jpg", // Replace with your image
+      image: "/images/beauty-banner.jpg",
     },
     {
       id: 2,
@@ -30,7 +25,7 @@ export default function ValueComboPackages() {
       reviews: 412,
       price: 849,
       originalPrice: 1099,
-      image: "/images/beauty-banner-2.jpg", // Replace with your image
+      image: "/images/beauty-banner-2.jpg",
     },
     {
       id: 3,
@@ -40,9 +35,74 @@ export default function ValueComboPackages() {
       reviews: 640,
       price: 1499,
       originalPrice: 1898,
-      image: "/images/beauty-banner-3.jpg", // Replace with your image
+      image: "/images/beauty-banner-3.jpg",
     },
   ];
+
+  // Sync state with localStorage cart
+  const syncCart = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const counts = {};
+      cart.forEach((item) => {
+        const title = item.title || item.name;
+        combos.forEach((c) => {
+          if (c.title === title) {
+            counts[c.id] = (counts[c.id] || 0) + (item.quantity || 1);
+          }
+        });
+      });
+      setCartQuantities(counts);
+    } catch (e) {
+      setCartQuantities({});
+    }
+  };
+
+  useEffect(() => {
+    syncCart();
+    window.addEventListener("storage", syncCart);
+    window.addEventListener("sparky-cart-change", syncCart);
+    return () => {
+      window.removeEventListener("storage", syncCart);
+      window.removeEventListener("sparky-cart-change", syncCart);
+    };
+  }, []);
+
+  const updateCart = (combo, delta) => {
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const existingIndex = cart.findIndex(
+        (item) => (item.title || item.name) === combo.title
+      );
+
+      if (existingIndex > -1) {
+        const newQty = (cart[existingIndex].quantity || 1) + delta;
+        if (newQty <= 0) {
+          cart.splice(existingIndex, 1);
+        } else {
+          cart[existingIndex].quantity = newQty;
+        }
+      } else if (delta > 0) {
+        cart.push({
+          title: combo.title,
+          name: combo.title,
+          price: combo.price,
+          originalPrice: combo.originalPrice,
+          image: combo.image,
+          quantity: 1,
+          category: "Combo Packages",
+          isCombo: true,
+        });
+      }
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("sparky-cart-change"));
+      syncCart();
+    } catch (e) {
+      console.error("Cart update error:", e);
+    }
+  };
 
   return (
     <section className="w-full px-3 py-6 sm:px-5 lg:px-8">
@@ -66,7 +126,9 @@ export default function ValueComboPackages() {
         {/* COMBO LIST */}
         <div className="flex flex-col gap-4">
           {combos.map((combo) => {
-            const isAdded = addedItems[combo.id];
+            const qty = cartQuantities[combo.id] || 0;
+            const isAdded = qty > 0;
+
             return (
               <div
                 key={combo.id}
@@ -74,13 +136,20 @@ export default function ValueComboPackages() {
               >
                 {/* LEFT: Image & Details */}
                 <div className="flex items-center gap-4 w-full sm:w-auto">
-                  {/* Thumbnail Image */}
+                  {/* Thumbnail Image with Floating Count Badge */}
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[16px] bg-[#FFF2F7] sm:h-28 sm:w-28">
                     <img
                       src={combo.image}
                       alt={combo.title}
                       className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     />
+
+                    {/* Floating Item Count on Card */}
+                    {qty > 0 && (
+                      <div className="absolute top-2 left-2 z-10 flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-1.5 text-[11px] font-black text-white shadow-[0_4px_12px_rgba(194,48,107,0.4)] ring-2 ring-white">
+                        {qty}
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
@@ -114,7 +183,7 @@ export default function ValueComboPackages() {
                   </div>
                 </div>
 
-                {/* RIGHT: Price & Add Button (Desktop alignment / Row layout) */}
+                {/* RIGHT: Price & Add / Quantity Buttons */}
                 <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-6 border-t border-[#F3DCE6]/50 pt-3 sm:border-t-0 sm:pt-0">
                   
                   {/* Price (Desktop) */}
@@ -127,19 +196,41 @@ export default function ValueComboPackages() {
                     </span>
                   </div>
 
-                  {/* ADD / ADDED Button styled with your pink theme */}
-                  <button
-                    type="button"
-                    onClick={() => handleAdd(combo.id)}
-                    className={`relative inline-flex items-center justify-center gap-1.5 rounded-xl px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider shadow-md transition-all duration-300 active:scale-95 cursor-pointer ${
-                      isAdded
-                        ? "bg-[#2B1B2E] text-white shadow-[0_4px_12px_rgba(43,27,46,0.2)]"
-                        : "bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] text-white shadow-[0_4px_14px_rgba(194,48,107,0.25)] hover:shadow-[0_6px_18px_rgba(194,48,107,0.35)]"
-                    }`}
-                  >
-                    {isAdded && <Check size={14} strokeWidth={3} />}
-                    <span>{isAdded ? "Added" : "Add"}</span>
-                  </button>
+                  {/* Interactive Button */}
+                  {isAdded ? (
+                    <div className="inline-flex items-center gap-2.5 rounded-xl bg-[#2B1B2E] px-3 py-2 text-xs font-black text-white shadow-md">
+                      <button
+                        type="button"
+                        onClick={() => updateCart(combo, -1)}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-90 transition-all cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={13} strokeWidth={3} />
+                      </button>
+
+                      <span className="min-w-4 text-center text-xs font-black text-[#F3A7C5]">
+                        {qty}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => updateCart(combo, 1)}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-90 transition-all cursor-pointer"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={13} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => updateCart(combo, 1)}
+                      className="relative inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-[0_4px_14px_rgba(194,48,107,0.25)] hover:shadow-[0_6px_18px_rgba(194,48,107,0.35)] active:scale-95 cursor-pointer"
+                    >
+                      <Plus size={14} strokeWidth={2.8} />
+                      <span>Add</span>
+                    </button>
+                  )}
 
                 </div>
               </div>

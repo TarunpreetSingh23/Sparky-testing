@@ -530,6 +530,7 @@ export default function HelpPage() {
                             : "bg-white border-[#F1DFE8] hover:border-[#F1DFE8]"
                         }`}
                       >
+
                         <button
                           onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
                           className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4"
