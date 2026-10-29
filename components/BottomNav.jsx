@@ -6,10 +6,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   Home,
-  Wrench,
-  Calendar,
-  CircleHelp,
+  LayoutGrid,
   ShoppingCart,
+  CircleHelp,
   User,
 } from "lucide-react";
 
@@ -19,6 +18,7 @@ export default function BottomNav() {
   const { user, openLoginModal } = useAuth();
   const [cartCount, setCartCount] = useState(0);
 
+  // Sync cart count with storage and custom sparky-cart-change events
   useEffect(() => {
     const updateCart = () => {
       try {
@@ -50,7 +50,7 @@ export default function BottomNav() {
       id: "services",
       label: "Services",
       href: "/beauty",
-      Icon: Wrench,
+      Icon: LayoutGrid,
       isActive: (path) =>
         path === "/beauty" ||
         path.startsWith("/services") ||
@@ -64,7 +64,7 @@ export default function BottomNav() {
       href: "/cart",
       Icon: ShoppingCart,
       isActive: (path) =>
-        path === "/bookings" || path.startsWith("/track"),
+        path === "/cart" || path === "/bookings" || path.startsWith("/track"),
     },
     {
       id: "help",
@@ -87,14 +87,14 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="lg:hidden fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-20px)] max-w-[440px] z-50 select-none">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 select-none">
       <nav
-        aria-label="Mobile navigation"
-        className="relative flex h-[66px] items-center justify-between rounded-[32px] border border-white/70 bg-gradient-to-r from-white/95 via-[#FFF7FB]/95 to-[#FFF0F6]/95 px-1.5 shadow-[0_8px_30px_rgba(194,48,107,0.14)] backdrop-blur-2xl"
+        aria-label="Mobile Bottom Navigation"
+        className="relative flex h-[60px] items-center justify-around border-t border-[#EAE7E9] bg-white/98 px-2 backdrop-blur-md shadow-[0_-2px_12px_rgba(37,35,42,0.06)]"
+        style={{
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 4px)",
+        }}
       >
-        {/* Subtle glass reflection */}
-        <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-b from-white/50 via-white/10 to-transparent" />
-
         {navTabs.map((tab) => {
           const active = tab.isActive(pathname);
           const Icon = tab.Icon;
@@ -114,90 +114,43 @@ export default function BottomNav() {
               }}
               aria-label={tab.label}
               aria-current={active ? "page" : undefined}
-              className="group relative z-10 flex h-full flex-1 cursor-pointer flex-col items-center justify-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[#C2306B] focus-visible:ring-offset-2"
+              className="relative flex flex-1 h-full flex-col items-center justify-center focus:outline-none cursor-pointer py-1"
             >
-              {active ? (
-                <div className="relative flex h-full w-full flex-col items-center justify-center">
-                  {/* Soft arch behind the active icon */}
-                  <div className="pointer-events-none absolute -top-[17px] left-1/2 z-10 flex h-[22px] w-[72px] -translate-x-1/2 items-center justify-center">
-                    <svg
-                      viewBox="0 0 72 22"
-                      className="h-full w-full"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M0 22C12 22 16 2 36 2C56 2 60 22 72 22Z"
-                        fill="#FFF7FB"
-                      />
-                      <path
-                        d="M0 22C12 22 16 2 36 2C56 2 60 22 72 22"
-                        stroke="#F1DFE8"
-                        strokeWidth="1.2"
-                      />
-                    </svg>
-                  </div>
-
-                  {/* Active rose glass button */}
-                  <motion.div
-                    layoutId="activeTabCircle"
-                    initial={{ scale: 0.85, y: 6 }}
-                    animate={{ scale: 1, y: 0 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 420,
-                      damping: 28,
-                    }}
-                    className="absolute -top-[25px] z-20 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-gradient-to-br from-[#E98CB0] via-[#C2306B] to-[#A51F56] text-white shadow-[0_8px_20px_rgba(194,48,107,0.28)]"
-                  >
-                    {/* Glass highlight */}
-                    <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/35 via-white/5 to-transparent" />
-
-                    <Icon
-                      size={24}
-                      strokeWidth={2.2}
-                      className="relative z-10 text-white drop-shadow-sm"
-                    />
-                  </motion.div>
-
-                  {/* Floating Cart Badge */}
-                  {tab.id === "cart" && cartCount > 0 && (
-                    <span className="absolute -top-[28px] -right-1 z-30 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-[#2B1B2E] px-1 text-[9px] font-black text-white shadow-md ring-2 ring-white">
-                      {cartCount}
-                    </span>
-                  )}
-
-                  {/* Active label */}
-                  <span className="relative z-20 mt-6 text-[11px] font-bold tracking-tight text-[#C2306B]">
-                    {tab.label}
-                  </span>
-                </div>
-              ) : (
+              {/* Subtle top indicator bar for active state */}
+              {active && (
                 <motion.div
-                  whileTap={{ scale: 0.94 }}
-                  className="relative flex h-full w-full flex-col items-center justify-center rounded-2xl transition-colors duration-300 group-hover:bg-[#C2306B]/[0.06]"
-                >
-                  <div className="relative">
-                    <Icon
-                      size={22}
-                      strokeWidth={1.8}
-                      className="text-[#2B1B2E]/75 transition-colors duration-300 group-hover:text-[#C2306B]"
-                    />
-
-                    {/* Floating Cart Badge */}
-                    {tab.id === "cart" && cartCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2.5 z-20 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-1 text-[9px] font-black text-white shadow-md ring-2 ring-white">
-                        {cartCount}
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="mt-1 text-[11px] font-medium leading-tight text-[#2B1B2E]/75 transition-colors duration-300 group-hover:text-[#C2306B]">
-                    {tab.label}
-                  </span>
-                </motion.div>
+                  layoutId="activeBottomTabLine"
+                  className="absolute top-0 h-[2.5px] w-8 rounded-full bg-[#C2306B]"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
               )}
+
+              {/* Icon Container with Badge */}
+              <div className="relative flex items-center justify-center">
+                <Icon
+                  size={20}
+                  strokeWidth={active ? 2.3 : 1.8}
+                  className={`transition-colors duration-200 ${
+                    active ? "text-[#C2306B]" : "text-[#77717A]"
+                  }`}
+                />
+
+                {/* Cart Quantity Badge */}
+                {tab.id === "cart" && cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-[#C2306B] px-1 text-[9px] font-black text-white shadow-xs">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </div>
+
+              {/* Tab Label */}
+              <span
+                className={`mt-1 text-[10px] tracking-tight font-medium leading-none transition-colors duration-200 ${
+                  active ? "font-bold text-[#C2306B]" : "text-[#77717A]"
+                }`}
+              >
+                {tab.label}
+              </span>
             </button>
           );
         })}
