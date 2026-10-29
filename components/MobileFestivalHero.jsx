@@ -9,6 +9,7 @@ import { getActiveCampaigns } from "@/lib/festivalCampaigns";
 // ========================================
 // SPARKY FESTIVAL THEME — EDIT COLORS HERE
 // ========================================
+
 const FESTIVAL_THEME = {
   beauty: "#FCF1F5",
   cleaning: "#EEF5F7",
