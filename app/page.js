@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -56,6 +56,16 @@ const want = [
   { id: 8, name: "Hair", icon: MessageCircle, image: "/images/CATEGORY-ICONS/hair.png" },
 ];
 
+const INITIAL_SERVICES = [
+  { _id: "s1", name: "Gold Radiant Facial", title: "Gold Radiant Facial", price: 999, image: "/images/goldfacial.webp", category: "Woman Services", rating: 4.9 },
+  { _id: "s2", name: "Diamond Glow Bleach", title: "Diamond Glow Bleach", price: 399, image: "/images/diamondfacial.webp", category: "Woman Services", rating: 4.8 },
+  { _id: "s3", name: "Full Arms & Legs Waxing", title: "Full Arms & Legs Waxing", price: 799, image: "/images/fullarmwaxing.webp", category: "Woman Services", rating: 4.9 },
+  { _id: "s4", name: "Classic Pedicure", title: "Classic Pedicure", price: 599, image: "/images/classicpedicure.webp", category: "Woman Services", rating: 4.8 },
+  { _id: "s5", name: "Hair Spa & Scalp Massage", title: "Hair Spa & Scalp Massage", price: 899, image: "/images/curlsandwaves.webp", category: "Woman Services", rating: 4.9 },
+  { _id: "s6", name: "Party & Bridal Makeup", title: "Party & Bridal Makeup", price: 1999, image: "/images/bridalmakeup.webp", category: "Woman Services", rating: 5.0 },
+  { _id: "s7", name: "Intense Deep Cleanup", title: "Intense Deep Cleanup", price: 699, image: "/images/deepcleanup.webp", category: "Woman Services", rating: 4.8 },
+];
+
 export default function SparkyServiceApp() {
   const router = useRouter();
   const { user, openLoginModal } = useAuth();
@@ -67,7 +77,7 @@ export default function SparkyServiceApp() {
   const [address, setAddress] = useState("Amritsar, Punjab");
 
   const [orders, setOrders] = useState([]);
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState(INITIAL_SERVICES);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -269,10 +279,6 @@ export default function SparkyServiceApp() {
       }
     }
   };
-
-  if (servicesLoading && services.length === 0) {
-    return <SparkyMobileSkeleton />;
-  }
 
   // Mobile service categories to display
   const mobileDisplayCategories = [
