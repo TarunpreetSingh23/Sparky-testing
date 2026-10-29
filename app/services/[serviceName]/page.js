@@ -4,21 +4,20 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShoppingCart,
-  ShieldCheck,
-  Sparkles,
-  Clock,
-  Star,
-  Zap,
-  ChevronRight,
-  ShieldAlert,
   ChevronLeft,
   Share2,
+  Star,
+  Clock,
+  ShieldCheck,
+  ShoppingCart,
+  Plus,
+  Minus,
   CheckCircle2,
-  Trash2,
-  X
+  Sparkles,
+  ArrowRight,
+  MessageSquare,
+  ThumbsUp,
 } from "lucide-react";
 
 export default function ServiceDetailPage() {
@@ -28,19 +27,15 @@ export default function ServiceDetailPage() {
   const [services, setServices] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showDrawer, setShowDrawer] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const [minCartError, setMinCartError] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const MIN_CART_VALUE = 299;
-  
-  // Theme Colors (Updated to Pink Theme matching your aesthetic)
-  const PINK_PRIMARY = "#C2306B";
-  const PINK_SECONDARY = "#A51F56";
-  const PINK_ACCENT = "#F3A7C5";
-  const PINK_BG = "#FFF6FA";
 
   const normalize = (s) => s?.toLowerCase().replace(/[\s-]+/g, "") || "";
 
+  // Fetch Services from API and find matched service
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -48,11 +43,14 @@ export default function ServiceDetailPage() {
         const data = await res.json();
         const list = Array.isArray(data) ? data : data.services || [];
         setServices(list);
+
         const decoded = decodeURIComponent(serviceName || "");
-        const found = list.find((s) => normalize(s.title).includes(normalize(decoded)));
-        setSelected(found);
+        const found = list.find((s) =>
+          normalize(s.title || s.name).includes(normalize(decoded))
+        );
+        setSelected(found || list[0] || null);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching service:", err);
       } finally {
         setLoading(false);
       }
@@ -60,460 +58,514 @@ export default function ServiceDetailPage() {
     fetchServices();
   }, [serviceName]);
 
-  useEffect(() => { window.scrollTo(0, 0); }, [serviceName]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [serviceName]);
+
+  // Sync existing quantity from cart if already present
+  useEffect(() => {
+    if (!selected) return;
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const matched = cart.find(
+        (item) => item.title === (selected.title || selected.name)
+      );
+      if (matched && matched.quantity) {
+        setQuantity(matched.quantity);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [selected]);
 
   const getCartTotal = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    return cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    return cart.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+      0
+    );
+  };
+
+  const handleQuantityChange = (delta) => {
+    const newQty = Math.max(1, quantity + delta);
+    setQuantity(newQty);
+
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const title = selected.title || selected.name;
+      const index = cart.findIndex((item) => item.title === title);
+      if (index > -1) {
+        cart[index].quantity = newQty;
+        localStorage.setItem("cart", JSON.stringify(cart));
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("sparky-cart-change"));
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   const addToCart = (service) => {
-   const itemToAdd = {
-    title: service.name || service.title,
-    price: typeof service.price === 'string'
-      ? parseInt(service.price.replace('₹', ''))
-      : service.price,
-    image: service.image,
-    quantity: 1,
-    category: service.category,
-    earning: service.earning,
-    profit: service.profit,
+    if (!service) return;
+
+    const itemToAdd = {
+      title: service.name || service.title,
+      price:
+        typeof service.price === "string"
+          ? parseInt(service.price.replace(/[₹,\s]/g, ""), 10)
+          : service.price,
+      image: service.image || service.imageUrl || "/images/goldfacial.webp",
+      quantity: quantity || 1,
+      category: service.category || "Woman Services",
+      earning: service.earning || 0,
+      profit: service.profit || 0,
+    };
+
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingIndex = existingCart.findIndex(
+      (item) => item.title === itemToAdd.title
+    );
+
+    if (existingIndex > -1) {
+      existingCart[existingIndex].quantity = quantity;
+    } else {
+      existingCart.push(itemToAdd);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("sparky-cart-change"));
+
+    toast.success("Added to cart!");
+
+    const total = getCartTotal();
+    if (total < MIN_CART_VALUE) {
+      const remaining = MIN_CART_VALUE - total;
+      setMinCartError(`Add at least ₹${remaining} more service`);
+      return;
+    }
+
+    setMinCartError("");
+    router.push("/cart");
   };
 
-  const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-  existingCart.push(itemToAdd);
-  localStorage.setItem("cart", JSON.stringify(existingCart));
-
-  const total = getCartTotal();
-
-  if (total < MIN_CART_VALUE) {
-    const remaining = MIN_CART_VALUE - total;
-    setMinCartError(`Add at least ₹${remaining} service`);
-    return; // ❌ Stop navigation
-  }
-
-  setMinCartError("");
-  router.push("/checkout");
+  const handleShare = async () => {
+    if (typeof window !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: selected?.title || "Sparky Home Services",
+          text: `Check out ${selected?.title} on Sparky!`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        // user dismissed share sheet
+      }
+    } else if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
   };
 
   if (loading) return <ServiceDetailSkeleton />;
 
-  if (!selected) return <div className="p-10 text-center font-black text-[#C2306B]">Service not found</div>;
+  if (!selected) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F5] flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold text-[#25232A] mb-2">Service not found</h2>
+        <p className="text-sm text-[#77717A] mb-6">
+          The service you are looking for is unavailable or has been relocated.
+        </p>
+        <button
+          onClick={() => router.push("/beauty")}
+          className="px-6 py-2.5 rounded-xl bg-[#C2306B] text-white text-xs font-bold uppercase tracking-wider"
+        >
+          Explore All Services
+        </button>
+      </div>
+    );
+  }
+
+  const price =
+    typeof selected.price === "string"
+      ? parseInt(selected.price.replace(/[₹,\s]/g, ""), 10)
+      : selected.price;
+  const originalPrice = selected.originalPrice || Math.round(price * 1.25);
+  const reviewsList = Array.isArray(selected.reviews) ? selected.reviews : [];
 
   return (
-    <div className="min-h-screen bg-white flex justify-center">
-  <div
-    className="
-      w-full
-      max-w-[430px]
-      min-h-screen
-      bg-[#FFF6FA]
-      text-[#2B1B2E]
-      pb-32
-      font-sans
-      relative
-      overflow-hidden
-      shadow-[0_0_60px_rgba(194,48,107,0.08)]
-      selection:bg-[#FCE6EF]
-    "
-  >
-      
-      {/* 📍 Header Overlay */}
-     <header
-  className="
-    fixed
-    top-0
-    left-1/2
-    -translate-x-1/2
-    w-full
-    max-w-[430px]
-    z-[50]
-    flex justify-between items-center
-    px-4 py-4
-  "
->
-  <button
-    onClick={() => router.back()}
-    className="w-10 h-10 bg-white/80 backdrop-blur-md shadow-lg rounded-full flex items-center justify-center border border-[#F3DCE6] active:scale-90 transition-all cursor-pointer"
-  >
-    <ChevronLeft size={22} className="text-[#C2306B]" />
-  </button>
-
-  <div className="flex gap-2">
-    <button
-      className="p-2 relative w-10 h-10 bg-white/90 backdrop-blur-md shadow-lg rounded-full flex items-center justify-center border border-[#F3DCE6] active:scale-90 transition-all cursor-pointer"
-      onClick={() => router.push("/cart")}
-    >
-      <ShoppingCart size={22} color={PINK_PRIMARY} />
-    </button>
-  </div>
-</header>
-
-      {/* 🖼️ Hero Visual with Arch Style */}
-      <div className="relative w-full aspect-[4/3] max-h-[360px] overflow-hidden rounded-b-[2.5rem] shadow-[0_12px_40px_rgba(194,48,107,0.12)] bg-[#FCE6EF]">
-
-  <Image
-    src={selected.image}
-    alt={selected.title}
-    fill
-    className="object-cover"
-    sizes="(max-width: 768px) 100vw, 600px"
-    quality={85}
-    priority
-  />
-
-  {/* Soft Gradient Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-
-</div>
-
-      <main className="space-y-4 px-4 mt-[-30px] relative z-10">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#25232A] pb-32">
+      {/* Container - Mobile centered with desktop max-width constraints */}
+      <div className="w-full max-w-lg lg:max-w-4xl mx-auto bg-white min-h-screen shadow-[0_2px_16px_rgba(37,35,42,0.04)] lg:my-6 lg:rounded-[28px] lg:border lg:border-[#EAE7E9] overflow-hidden">
         
-        {/* Card 1: Core Title & Pricing */}
-    <section className="bg-white rounded-[1.8rem] px-6 py-7 border border-[#F3DCE6] shadow-[0_8px_24px_rgba(194,48,107,0.04)]">
+        {/* ================= A. SERVICE IMAGE GALLERY ================= */}
+        <div className="relative w-full aspect-[4/3] max-h-[340px] sm:max-h-[380px] bg-[#F7F7F5] overflow-hidden">
+          <Image
+            src={selected.image || "/images/goldfacial.webp"}
+            alt={selected.title || selected.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 800px"
+            priority
+            className="object-cover object-center"
+          />
 
-  <div className="space-y-5">
+          {/* Top Edge Protection Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/10 pointer-events-none" />
 
-    {/* Tag + Rating */}
-    <div className="flex items-center justify-between">
+          {/* Top Bar Floating Controls */}
+          <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 pt-safe">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-[#25232A] shadow-md border border-[#EAE7E9] active:scale-95 transition-transform cursor-pointer"
+            >
+              <ChevronLeft size={20} strokeWidth={2.5} />
+            </button>
 
-      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#C2306B]">
-        Premium Service
-      </span>
+            {/* Actions: Share & Cart */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share service"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-[#25232A] shadow-md border border-[#EAE7E9] active:scale-95 transition-transform cursor-pointer"
+              >
+                <Share2 size={17} />
+              </button>
 
-      <div className="flex items-center gap-1 text-[#FACC15]">
-        <Star size={13} fill="currentColor" />
-        <span className="text-[12px] font-bold text-[#2B1B2E]">
-          {selected.rating || "4.9"}
-        </span>
-      </div>
+              <button
+                type="button"
+                onClick={() => router.push("/cart")}
+                aria-label="View cart"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-[#25232A] shadow-md border border-[#EAE7E9] active:scale-95 transition-transform cursor-pointer"
+              >
+                <ShoppingCart size={17} />
+              </button>
+            </div>
+          </div>
+        </div>
 
-    </div>
+        {/* ================= MAIN CONTENT ================= */}
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+          
+          {/* ================= B. SERVICE NAME, PRICE & QUANTITY ROW ================= */}
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              {/* Title & Category */}
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#C2306B]">
+                  {selected.category || "Professional Home Service"}
+                </span>
+                <h1 className="mt-0.5 text-xl sm:text-2xl font-black text-[#25232A] leading-tight tracking-tight">
+                  {selected.title || selected.name}
+                </h1>
+              </div>
 
-    {/* Title */}
-    <h1 className="text-[22px] font-black text-[#2B1B2E] leading-snug tracking-tight">
-      {selected.title}
-    </h1>
-
-    {/* Description */}
-    <p className="text-[14px] text-[#684B5A] leading-relaxed">
-      {selected.description}
-    </p>
-
-    {/* Price Row */}
-    <div className="flex items-end justify-between pt-4 border-t border-[#F3DCE6]">
-
-      <div className="flex items-baseline gap-3">
-        <span className="text-[24px] font-black text-[#2B1B2E]">
-          ₹{selected.price}
-        </span>
-
-        <span className="text-[13px] text-[#A38A97] line-through">
-          ₹{selected.price + 300}
-        </span>
-      </div>
-
-      <span className="text-[10px] font-extrabold uppercase tracking-wide text-white bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] px-3 py-1 rounded-full shadow-md">
-        Best Value
-      </span>
-
-    </div>
-
-  </div>
-</section>
-
-
-        {/* Min Cart Toast */}
-      {minCartError && (
-  <div
-    className="fixed bottom-19 left-1/2 -translate-x-1/2 z-[100]
-    w-[90%] max-w-xs
-    bg-white/95 backdrop-blur-xl
-    border border-[#F3DCE6]
-    shadow-[0_10px_40px_rgba(194,48,107,0.15)]
-    rounded-2xl px-4 py-3
-    flex items-center gap-3
-    animate-in fade-in slide-in-from-bottom-4 duration-300"
-  >
-    {/* Gradient 3D Icon */}
-    <div className="relative shrink-0">
-      <div className="w-10 h-10 rounded-xl
-        bg-gradient-to-br from-[#E98CB0] via-[#C2306B] to-[#A51F56]
-        flex items-center justify-center
-        text-white text-sm font-black
-        shadow-md shadow-[#C2306B]/30"
-      >
-        ₹
-      </div>
-    </div>
-
-    {/* Text */}
-    <div className="flex-1">
-      <p className="text-xs font-semibold text-[#2B1B2E] leading-tight">
-         <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#E98CB0] via-[#C2306B] to-[#A51F56] font-extrabold">
-          {minCartError}
-        </span> more
-      </p>
-      <p className="text-[10px] text-[#684B5A] font-medium">
-        to proceed to checkout
-      </p>
-
-      {/* Minimal Progress */}
-      <div className="mt-2 h-[3px] w-full bg-[#F3DCE6] rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-br from-[#E98CB0] via-[#C2306B] to-[#A51F56] transition-all duration-700 ease-out rounded-full"
-          style={{ width: "70%" }} 
-        />
-      </div>
-    </div>
-  </div>
-)}
-
-        {/* ✨ SERVICE STEPS: Pink Theme Style */}
-      {selected.steps && selected.steps.length > 0 && (
-  <section className="mt-12 px-6">
-
-    {/* Header */}
-    <div className="mb-10">
-      <p className="text-[11px] font-extrabold tracking-[0.25em] text-[#C2306B] uppercase mb-2">
-        How It Works
-      </p>
-
-      <h2 className="text-[24px] font-black text-[#2B1B2E] tracking-tight">
-        Service Journey
-      </h2>
-    </div>
-
-    {/* Steps */}
-    <div className="space-y-8 relative">
-
-      {/* Vertical Line */}
-      <div className="absolute left-3 top-0 bottom-0 w-px bg-[#F3DCE6]" />
-
-      {selected.steps.map((step, idx) => {
-        const [stepLabel, rest] = step.split(" – ");
-        const [title, desc] = rest ? rest.split(": ") : [rest, ""];
-
-        return (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: idx * 0.05 }}
-            viewport={{ once: true }}
-            className="relative pl-12"
-          >
-
-            {/* Step Dot */}
-            <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full 
-              bg-white border border-[#F3DCE6] 
-              flex items-center justify-center
-              text-[11px] font-black text-[#C2306B]
-              shadow-sm
-            ">
-              {idx + 1}
+              {/* Price Block */}
+              <div className="text-right shrink-0">
+                <div className="flex items-baseline justify-end gap-1.5">
+                  <span className="text-2xl sm:text-3xl font-black text-[#25232A] tracking-tight">
+                    ₹{price}
+                  </span>
+                  {originalPrice > price && (
+                    <span className="text-xs font-semibold text-[#77717A] line-through">
+                      ₹{originalPrice}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] font-bold text-[#77717A] uppercase tracking-wider">
+                  Inclusive of all taxes
+                </p>
+              </div>
             </div>
 
-            {/* Content */}
-            <div className="space-y-2">
-              <h3 className="text-[16px] font-extrabold text-[#2B1B2E] leading-snug">
-                {title}
-              </h3>
+            {/* Compact Quantity Selector */}
+            <div className="flex items-center justify-between pt-2 border-t border-[#EAE7E9]">
+              <span className="text-xs font-bold text-[#77717A]">
+                Quantity
+              </span>
+              <div className="inline-flex items-center rounded-xl border border-[#EAE7E9] bg-[#F7F7F5] p-1">
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-[#25232A] shadow-xs disabled:opacity-40 disabled:cursor-not-allowed active:scale-90 transition-transform"
+                >
+                  <Minus size={13} strokeWidth={2.5} />
+                </button>
+                <span className="w-8 text-center text-xs font-black text-[#25232A]">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(1)}
+                  aria-label="Increase quantity"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-[#25232A] shadow-xs active:scale-90 transition-transform"
+                >
+                  <Plus size={13} strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+          </div>
 
-              <p className="text-[14px] text-[#684B5A] leading-relaxed">
-                {desc}
+          {/* ================= E. SERVICE INFORMATION SUMMARY ================= */}
+          <div className="grid grid-cols-3 divide-x divide-[#EAE7E9] rounded-2xl border border-[#EAE7E9] bg-[#F7F7F5] p-3 text-center">
+            {/* 1. Rating */}
+            <div className="px-2">
+              <div className="flex items-center justify-center gap-1 text-[#25232A]">
+                <Star size={14} fill="#f59e0b" className="text-amber-500" />
+                <span className="text-sm font-black">
+                  {selected.rating || "4.8"}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[10px] font-medium text-[#77717A]">
+                Customer Rating
               </p>
             </div>
 
-          </motion.div>
-        );
-      })}
-    </div>
-  </section>
-)}
-
-        {/* Recommended: Pink Grid */}
-        <section className="bg-white rounded-[2.5rem] p-8 border border-[#F3DCE6] shadow-sm">
-           <h2 className="text-[12px] font-black uppercase tracking-[0.2em] text-[#C2306B] mb-6">Popular Add-ons</h2>
-           <div className="grid grid-cols-2 gap-4">
-              {services.slice(0, 4).map((s, i) => (
-                <div key={i} onClick={() => router.push(`/services/${encodeURIComponent(s.title)}`)} className="bg-[#FFF6FA] border border-[#F3DCE6] rounded-[2rem] p-3 shadow-sm active:scale-95 transition-all group cursor-pointer">
-                  <div className="relative aspect-square rounded-[1.5rem] overflow-hidden mb-3">
-                    <Image src={s.image} alt="Service" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
-                  </div>
-                  <p className="text-[13px] font-black text-[#2B1B2E] line-clamp-1 uppercase mb-1 tracking-tight">{s.title}</p>
-                  <p className="text-sm font-black text-[#C2306B]">₹{s.price}</p>
-                </div>
-              ))}
-           </div>
-        </section>
-
-        {/* Sparky Guarantee Badge */}
-        <div className="p-12 text-center bg-gradient-to-br from-[#2B1B2E] via-[#3B223D] to-[#2B1B2E] rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
-            <div className="flex justify-center mb-4">
-               <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
-                  <ShieldCheck size={32} className="text-[#F3A7C5]" />
-               </div>
+            {/* 2. Estimated Duration */}
+            <div className="px-2">
+              <div className="flex items-center justify-center gap-1 text-[#25232A]">
+                <Clock size={14} className="text-[#C2306B]" />
+                <span className="text-sm font-black">45-60 min</span>
+              </div>
+              <p className="mt-0.5 text-[10px] font-medium text-[#77717A]">
+                Service Time
+              </p>
             </div>
-            <h4 className="text-white text-lg font-black tracking-widest uppercase italic">Sparky Certified</h4>
-            <p className="text-white/70 text-[11px] font-extrabold uppercase tracking-widest mt-2 leading-relaxed px-4">
-              Premium Hygiene • Single-Use Kits • Background Verified Experts
+
+            {/* 3. Hygiene Standard */}
+            <div className="px-2">
+              <div className="flex items-center justify-center gap-1 text-[#25232A]">
+                <ShieldCheck size={14} className="text-emerald-600" />
+                <span className="text-sm font-black">Verified</span>
+              </div>
+              <p className="mt-0.5 text-[10px] font-medium text-[#77717A]">
+                Single-use kit
+              </p>
+            </div>
+          </div>
+
+          {/* ================= D. DESCRIPTION SECTION ================= */}
+          <section className="space-y-2">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#25232A]">
+              About This Service
+            </h2>
+            <p className="text-sm text-[#77717A] leading-relaxed">
+              {selected.description ||
+                "Delivered at your home by background-verified professionals using sealed hygienic kits, sterilized tools, and salon-grade formulas."}
             </p>
+          </section>
+
+          {/* ================= G. SERVICE JOURNEY / STEPS (If Available) ================= */}
+          {selected.steps && selected.steps.length > 0 && (
+            <section className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[#25232A]">
+                  Service Process ({selected.steps.length} Steps)
+                </h2>
+                <span className="text-[10px] font-bold text-[#C2306B]">Standard Protocol</span>
+              </div>
+
+              <div className="space-y-2.5">
+                {selected.steps.map((step, idx) => {
+                  const [stepNumber, details] = step.split(" – ");
+                  const [stepTitle, stepDesc] = details ? details.split(": ") : [details, ""];
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 rounded-xl border border-[#EAE7E9] bg-white p-3 shadow-xs"
+                    >
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FFF0F6] text-[10px] font-black text-[#C2306B] border border-[#F1DFE8]">
+                        {idx + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-[#25232A]">
+                          {stepTitle || step}
+                        </h4>
+                        {stepDesc && (
+                          <p className="mt-0.5 text-[11px] text-[#77717A] leading-relaxed">
+                            {stepDesc}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* ================= F. REVIEWS SECTION ================= */}
+          <section className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[#25232A]">
+                  Customer Reviews
+                </h2>
+                {reviewsList.length > 0 && (
+                  <span className="rounded-full bg-[#F7F7F5] px-2 py-0.5 text-[10px] font-bold text-[#77717A] border border-[#EAE7E9]">
+                    {reviewsList.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] font-bold text-[#77717A]">Verified Bookings</span>
+            </div>
+
+            {reviewsList.length > 0 ? (
+              <div className="space-y-2.5">
+                {reviewsList.map((review, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-[#EAE7E9] bg-[#F7F7F5] p-3 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#25232A]">
+                        {review.user?.name || review.userName || "Verified Customer"}
+                      </span>
+                      <div className="flex items-center gap-0.5 text-amber-500">
+                        {Array.from({ length: review.rating || 5 }).map((_, rIdx) => (
+                          <Star key={rIdx} size={11} fill="currentColor" />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#77717A] leading-relaxed">
+                      {review.comment || review.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[#EAE7E9] bg-[#F7F7F5] p-5 text-center">
+                <MessageSquare size={20} className="mx-auto text-[#77717A] mb-1.5" />
+                <p className="text-xs font-bold text-[#25232A]">No reviews yet</p>
+                <p className="text-[11px] text-[#77717A] mt-0.5">
+                  Book this service and share your verified experience!
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* ================= H. RECOMMENDED ADD-ONS ================= */}
+          {services.length > 1 && (
+            <section className="space-y-3 pt-2">
+              <h2 className="text-xs font-black uppercase tracking-wider text-[#25232A]">
+                Frequently Booked Together
+              </h2>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {services
+                  .filter((s) => (s.title || s.name) !== (selected.title || selected.name))
+                  .slice(0, 4)
+                  .map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() =>
+                        router.push(
+                          `/services/${encodeURIComponent(item.title || item.name)}`
+                        )
+                      }
+                      className="rounded-xl border border-[#EAE7E9] bg-white p-2.5 shadow-xs cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#F7F7F5] mb-2">
+                        <Image
+                          src={item.image || "/images/goldfacial.webp"}
+                          alt={item.title || item.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h4 className="text-[11px] font-bold text-[#25232A] line-clamp-1">
+                        {item.title || item.name}
+                      </h4>
+                      <p className="mt-0.5 text-xs font-black text-[#C2306B]">
+                        ₹{item.price}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          )}
+
+          {/* Minimum Cart Toast */}
+          {minCartError && (
+            <div className="rounded-xl border border-[#F1DFE8] bg-[#FFF0F6] p-3 text-center">
+              <p className="text-xs font-bold text-[#C2306B]">
+                {minCartError}
+              </p>
+              <p className="text-[10px] text-[#77717A] mt-0.5">
+                Minimum booking total is ₹{MIN_CART_VALUE}
+              </p>
+            </div>
+          )}
         </div>
-      </main>
+      </div>
 
-      {/* 🚀 Sticky Checkout Bar */}
-<div
-  className="
-    fixed
-    bottom-0
-    left-1/2
-    -translate-x-1/2
-    w-full
-    max-w-[430px]
-    z-60
-    bg-white/90 backdrop-blur-xl
-    border-t border-[#F3DCE6]
-    px-6 py-4
-    flex items-center justify-between
-    shadow-[0_-12px_32px_rgba(194,48,107,0.08)]
-    transition-all
-  "
->
+      {/* ================= G. FIXED BOTTOM BOOKING ACTION ================= */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#EAE7E9] shadow-[0_-4px_16px_rgba(37,35,42,0.06)]">
+        <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-3 pb-safe flex items-center justify-between gap-3">
+          {/* Left Price Details */}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-[#77717A] uppercase tracking-wider">
+              Total ({quantity} {quantity === 1 ? "unit" : "units"})
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-[#25232A]">
+                ₹{price * quantity}
+              </span>
+              {originalPrice > price && (
+                <span className="text-xs font-medium text-[#77717A] line-through">
+                  ₹{originalPrice * quantity}
+                </span>
+              )}
+            </div>
+          </div>
 
-  {/* LEFT — Price */}
-  <div className="flex flex-col">
-    <div className="flex items-center gap-2">
-      <span className="text-[24px] md:text-[26px] font-black text-[#2B1B2E] tracking-tight leading-none">
-        ₹{selected.price}
-      </span>
-
-      <span className="
-        bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56] 
-        text-white
-        text-[9px] font-extrabold px-2 py-0.5 
-        rounded-full uppercase tracking-wide
-        shadow-[0_2px_8px_rgba(194,48,107,0.25)]
-      ">
-        Net Price
-      </span>
-    </div>
-
-    <p className="mt-1 text-[10px] font-semibold text-[#8D788D] tracking-wide">
-      Excluding visiting charges
-    </p>
-  </div>
-
-  {/* RIGHT — CTA */}
-  <button
-    onClick={() => addToCart(selected)}
-    className="
-      h-12 md:h-14 px-6 md:px-8 
-      rounded-[1.5rem] 
-      bg-gradient-to-r from-[#E98CB0] via-[#C2306B] to-[#A51F56]
-      text-white 
-      text-[12px] font-black uppercase tracking-[0.18em]
-      shadow-[0_6px_18px_rgba(194,48,107,0.3)]
-      flex items-center justify-center gap-3
-      active:scale-[0.97] transition-all cursor-pointer
-    "
-  >
-    Book Now
-    <ChevronRight size={18} className="text-white" />
-  </button>
-</div>
-
-
-    </div>
+          {/* Right Action Button */}
+          <button
+            type="button"
+            onClick={() => addToCart(selected)}
+            className="flex-1 max-w-[240px] h-[48px] rounded-xl bg-[#C2306B] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:bg-[#A82058] active:scale-95 transition-all cursor-pointer"
+          >
+            <span>Add to Cart</span>
+            <ArrowRight size={15} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ================= LOADER ================= */
+/* ================= SKELETON LOADER ================= */
 function ServiceDetailSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FFF6FA] pb-32 animate-pulse">
+    <div className="min-h-screen bg-[#F7F7F5] pb-28">
+      <div className="w-full max-w-lg lg:max-w-4xl mx-auto bg-white min-h-screen p-4 space-y-4">
+        {/* Hero image skeleton */}
+        <div className="w-full aspect-[4/3] max-h-[340px] rounded-2xl bg-[#EAE7E9] animate-pulse" />
 
-      {/* ===== HEADER FLOATING BUTTONS ===== */}
-      <div className="fixed top-0 inset-x-0 z-[50] flex justify-between items-center px-4 py-4">
-        <div className="w-10 h-10 rounded-full bg-white shadow border border-[#F3DCE6]" />
-        <div className="w-10 h-10 rounded-full bg-white shadow border border-[#F3DCE6]" />
-      </div>
-
-      {/* ===== HERO IMAGE ===== */}
-      <div className="relative w-full h-[420px] rounded-b-[3.5rem] overflow-hidden bg-[#FCE6EF]">
-        <div className="absolute bottom-10 left-6 h-8 w-44 rounded-xl bg-white/80" />
-      </div>
-
-      {/* ===== MAIN CONTENT ===== */}
-      <main className="space-y-4 px-4 mt-[-40px] relative z-10">
-
-        {/* TITLE + PRICE CARD */}
-        <section className="bg-white rounded-[2.5rem] p-8 border border-[#F3DCE6] shadow-sm space-y-4">
-          <div className="flex gap-3">
-            <div className="h-6 w-32 rounded-full bg-[#FCE6EF]" />
-            <div className="h-6 w-20 rounded-full bg-[#FCE6EF]" />
-          </div>
-
-          <div className="h-7 w-3/4 rounded-xl bg-[#F3DCE6]" />
-          <div className="h-4 w-full rounded-lg bg-[#FCE6EF]" />
-          <div className="h-4 w-2/3 rounded-lg bg-[#FCE6EF]" />
-
-          <div className="flex items-center gap-4 pt-4 border-t border-[#F3DCE6]">
-            <div className="h-8 w-24 rounded-xl bg-[#F3DCE6]" />
-            <div className="h-6 w-16 rounded-lg bg-[#FCE6EF]" />
-            <div className="ml-auto h-7 w-24 rounded-xl bg-[#FCE6EF]" />
-          </div>
-        </section>
-
-        {/* SERVICE STEPS */}
-        <section className="bg-white rounded-[2.5rem] p-8 border border-[#F3DCE6] space-y-6">
-          <div className="h-6 w-48 rounded-xl bg-[#F3DCE6]" />
-
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-[#FFF6FA] p-6 rounded-[2rem] border border-[#F3DCE6] space-y-3"
-            >
-              <div className="flex justify-between">
-                <div className="h-3 w-24 rounded bg-[#FCE6EF]" />
-                <div className="h-8 w-8 rounded-lg bg-[#F3DCE6]" />
-              </div>
-              <div className="h-5 w-2/3 rounded bg-[#F3DCE6]" />
-              <div className="h-4 w-full rounded bg-[#FCE6EF]" />
-              <div className="h-4 w-3/4 rounded bg-[#FCE6EF]" />
-            </div>
-          ))}
-        </section>
-
-        {/* ADD-ONS GRID */}
-        <section className="bg-white rounded-[2.5rem] p-8 border border-[#F3DCE6]">
-          <div className="h-4 w-32 rounded bg-[#F3DCE6] mb-6" />
-          <div className="grid grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="aspect-square rounded-[1.5rem] bg-[#FCE6EF]" />
-                <div className="h-4 w-3/4 rounded bg-[#F3DCE6]" />
-                <div className="h-4 w-16 rounded bg-[#FCE6EF]" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* GUARANTEE BANNER */}
-        <div className="h-44 rounded-[3rem] bg-[#C2306B]/20" />
-      </main>
-
-      {/* ===== STICKY BOTTOM BAR ===== */}
-      <div className="fixed bottom-0 inset-x-0 z-[60] bg-white/90 backdrop-blur-xl border-t border-[#F3DCE6] px-6 py-5">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-7 w-24 rounded bg-[#F3DCE6]" />
-            <div className="h-3 w-32 rounded bg-[#FCE6EF]" />
-          </div>
-          <div className="h-14 w-40 rounded-[1.25rem] bg-[#C2306B]/30" />
+        {/* Title row */}
+        <div className="space-y-2 pt-2">
+          <div className="h-4 w-28 bg-[#EAE7E9] rounded animate-pulse" />
+          <div className="h-7 w-3/4 bg-[#EAE7E9] rounded animate-pulse" />
+          <div className="h-6 w-24 bg-[#EAE7E9] rounded animate-pulse" />
         </div>
+
+        {/* 3 Metric columns */}
+        <div className="h-16 w-full rounded-2xl bg-[#EAE7E9] animate-pulse" />
+
+        {/* Description lines */}
+        <div className="space-y-2 pt-2">
+          <div className="h-4 w-full bg-[#EAE7E9] rounded animate-pulse" />
+          <div className="h-4 w-5/6 bg-[#EAE7E9] rounded animate-pulse" />
+          <div className="h-4 w-2/3 bg-[#EAE7E9] rounded animate-pulse" />
+        </div>
+
+        {/* Fixed bottom bar skeleton */}
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#EAE7E9]" />
       </div>
     </div>
   );
