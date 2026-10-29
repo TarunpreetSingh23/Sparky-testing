@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -112,21 +112,42 @@ export default function SparkyServiceApp() {
   );
 
   // Fetch Services from Database API
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const res = await fetch("/api/services");
-        const data = await res.json();
-        setServices(Array.isArray(data) ? data : []);
-      } catch (error) {
+ useEffect(() => {
+  const controller = new AbortController();
+
+  const fetchServices = async () => {
+    try {
+      const res = await fetch("/api/services", {
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Services API failed: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Services API did not return an array");
+      }
+
+      setServices(data);
+    } catch (error) {
+      if (error.name !== "AbortError") {
         console.error("Error fetching services:", error);
         setServices([]);
-      } finally {
+      }
+    } finally {
+      if (!controller.signal.aborted) {
         setServicesLoading(false);
       }
-    };
-    fetchServices();
-  }, []);
+    }
+  };
+
+  fetchServices();
+
+  return () => controller.abort();
+}, []);
 
   // Fetch User Orders for Floating Tracker
   useEffect(() => {
