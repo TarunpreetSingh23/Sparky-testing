@@ -413,7 +413,7 @@ export default function BeautyServicesPage() {
               <ChevronLeft size={19} strokeWidth={2.5} />
             </button>
 
-            <div className="flex flex-col min-w-0">
+            {/* <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="text-[14px] font-[950] tracking-tight italic text-[#25232A]">
                   SPARKY<span className="text-[#C2306B]">.</span>
@@ -428,7 +428,7 @@ export default function BeautyServicesPage() {
                   {userAddress}
                 </span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Right: Cart Button with live count */}
@@ -527,7 +527,7 @@ export default function BeautyServicesPage() {
 
                 {/* Label */}
                 <span
-                  className={`text-[11px] font-bold text-center tracking-tight leading-none ${
+                  className={`text-[11px] font-bold text-center tracking-tight leading-2.5 ${
                     isActive ? "text-[#C2306B]" : "text-[#25232A]"
                   }`}
                 >
@@ -684,14 +684,14 @@ export default function BeautyServicesPage() {
           <div className="lg:col-span-9 space-y-4">
             {/* Header info */}
             <div className="flex items-center justify-between pb-1">
-              <div>
+              {/* <div>
                 <h2 className="text-base sm:text-lg font-black text-[#25232A]">
                   {selectedCategory === "ALL" ? "All Beauty Services" : `${selectedCategory} Rituals`}
                 </h2>
                 <p className="text-xs text-[#77717A]">
                   Showing verified at-home beauty treatments
                 </p>
-              </div>
+              </div> */}
 
               {activeFiltersCount > 0 && (
                 <button
