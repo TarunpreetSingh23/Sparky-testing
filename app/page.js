@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -1413,46 +1413,49 @@ export default function SparkyServiceApp() {
                 className="space-y-2.5 scroll-mt-24"
               >
                 {/* Section Header: Heading on left, Subtitle, See all on right */}
-                <div className="flex items-end justify-between px-0.5">
-                  <div className="flex items-start gap-2 min-w-0 pr-2">
-                    {/* Category subtle color accent bar */}
-                    <span
-                      className="w-1 h-5 rounded-full mt-0.5 shrink-0"
-                      style={{ backgroundColor: group.accentColor }}
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-[15px] min-[380px]:text-[16px] font-black tracking-tight text-[#25232A]">
-                          {group.title}
-                        </h3>
-                        <span
-                          className="text-[9.5px] font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider"
-                          style={{
-                            backgroundColor: group.bgAccent,
-                            color: group.tagColor,
-                          }}
-                        >
-                          {group.services.length}
-                        </span>
-                      </div>
-                      {group.subtitle && (
-                        <p className="text-[11px] text-[#77717A] font-medium leading-tight mt-0.5 line-clamp-1">
-                          {group.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between gap-3 px-0.5 mb-3">
+  {/* Category title */}
+  <div className="flex items-center gap-2.5 min-w-0">
+    <span
+      className="w-[3px] h-8 rounded-full shrink-0"
+      style={{ backgroundColor: group.accentColor }}
+    />
 
-                  {/* See all action */}
-                  <Link
-                    href={group.seeAllHref}
-                    className="inline-flex items-center gap-0.5 text-[11px] font-bold shrink-0 hover:underline mb-0.5 active:opacity-70 transition-opacity"
-                    style={{ color: group.accentColor }}
-                  >
-                    <span>See all</span>
-                    <ChevronRight size={13} strokeWidth={2.5} />
-                  </Link>
-                </div>
+    <div className="min-w-0">
+      <div className="flex items-center gap-2">
+        <h3 className="text-[16px] min-[380px]:text-[17px] font-bold tracking-[-0.35px] leading-tight text-[#25232A] truncate">
+          {group.title}
+        </h3>
+
+        <span
+          className="inline-flex items-center justify-center min-w-[22px] h-[19px] px-1.5 rounded-md text-[10px] font-semibold leading-none shrink-0"
+          style={{
+            backgroundColor: group.bgAccent,
+            color: group.tagColor,
+          }}
+        >
+          {group.services.length}
+        </span>
+      </div>
+
+      {group.subtitle && (
+        <p className="text-[11px] text-[#77717A] font-normal leading-[15px] mt-1 truncate">
+          {group.subtitle}
+        </p>
+      )}
+    </div>
+  </div>
+
+  {/* See all */}
+  <Link
+    href={group.seeAllHref}
+    className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-[-0.1px] shrink-0 py-2 pl-2 transition-opacity active:opacity-60"
+    style={{ color: group.accentColor }}
+  >
+    See all
+    <ChevronRight size={14} strokeWidth={2} />
+  </Link>
+</div>
 
                 {/* 
                   3-CARDS PER ROW MOBILE HORIZONTAL PRESENTATION:
@@ -1519,7 +1522,7 @@ export default function SparkyServiceApp() {
                               </span>
                             ) : (
                               <span className="flex items-center gap-0.5">
-                                <span>ADD</span>
+                                
                                 <Plus size={9} strokeWidth={3} />
                               </span>
                             )}
@@ -1537,9 +1540,7 @@ export default function SparkyServiceApp() {
                             <span className="text-[11.5px] min-[380px]:text-[12.5px] font-black text-[#25232A] tracking-tight">
                               ₹{price}
                             </span>
-                            <span className="text-[8px] font-extrabold text-[#77717A] uppercase tracking-wider">
-                              Sparky
-                            </span>
+                           
                           </div>
                         </div>
                       </div>
