@@ -470,9 +470,18 @@ html, body {
 input, textarea, button {
   font-size: 16px;
 }
+/* Hide scrollbars while preserving native smooth touch scrolling */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
     transition: none !important;
   }
-}
+}

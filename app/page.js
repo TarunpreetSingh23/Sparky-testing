@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import FloatingOrderTracker from "@/components/FloatingOrderTracker";
 import AboutSections from "@/components/AboutSections";
@@ -18,7 +19,6 @@ import MobilePromoCards from "@/components/MobilePromoCards";
 import {
   Search,
   Sparkles,
-  Wrench,
   X,
   MapPin,
   Star,
@@ -39,12 +39,30 @@ import {
   PhoneCall,
   SlidersHorizontal,
   Plus,
-  Clock,
+  Minus,
+  Check,
 } from "lucide-react";
 
 const UserMap = dynamic(() => import("@/components/UserMap"), { ssr: false });
 
-/* ================= STATIC DESKTOP CATEGORIES ================= */
+/* ================= SPARKY BRAND PALETTE ================= */
+const SPARKY_COLORS = {
+  primary: "#C2306B", // Primary brand pink
+  blush: "#FCF1F5", // Light blush
+  roseSoft: "#F9E3EC", // Soft rose
+  teal: "#094B66", // Deep teal
+  blueLight: "#EEF5F7", // Light blue
+  cream: "#F7F0EB", // Warm cream
+  sage: "#F4F3EA", // Soft sage
+  sageAccent: "#C0BC91", // Sage accent
+  brownDeep: "#55210A", // Deep brown
+  text: "#25232A", // Main text
+  muted: "#77717A", // Secondary text
+  border: "#EAE7E9", // Border
+  white: "#FFFFFF",
+};
+
+/* ================= STATIC DESKTOP CATEGORIES (100% PRESERVED) ================= */
 const want = [
   { id: 1, name: "Pedicure", icon: Scissors, image: "/images/CATEGORY-ICONS/pedicure.png" },
   { id: 2, name: "Manicure", icon: Zap, image: "/images/CATEGORY-ICONS/manicure.png" },
@@ -56,14 +74,517 @@ const want = [
   { id: 8, name: "Hair", icon: MessageCircle, image: "/images/CATEGORY-ICONS/hair.png" },
 ];
 
-const INITIAL_SERVICES = [
-  { _id: "s1", name: "Gold Radiant Facial", title: "Gold Radiant Facial", price: 999, image: "/images/goldfacial.webp", category: "Woman Services", rating: 4.9 },
-  { _id: "s2", name: "Diamond Glow Bleach", title: "Diamond Glow Bleach", price: 399, image: "/images/diamondfacial.webp", category: "Woman Services", rating: 4.8 },
-  { _id: "s3", name: "Full Arms & Legs Waxing", title: "Full Arms & Legs Waxing", price: 799, image: "/images/fullarmwaxing.webp", category: "Woman Services", rating: 4.9 },
-  { _id: "s4", name: "Classic Pedicure", title: "Classic Pedicure", price: 599, image: "/images/classicpedicure.webp", category: "Woman Services", rating: 4.8 },
-  { _id: "s5", name: "Hair Spa & Scalp Massage", title: "Hair Spa & Scalp Massage", price: 899, image: "/images/curlsandwaves.webp", category: "Woman Services", rating: 4.9 },
-  { _id: "s6", name: "Party & Bridal Makeup", title: "Party & Bridal Makeup", price: 1999, image: "/images/bridalmakeup.webp", category: "Woman Services", rating: 5.0 },
-  { _id: "s7", name: "Intense Deep Cleanup", title: "Intense Deep Cleanup", price: 699, image: "/images/deepcleanup.webp", category: "Woman Services", rating: 4.8 },
+/* ================= AUTHENTIC REAL BACKEND SERVICES INITIAL STATE ================= */
+const INITIAL_AUTHENTIC_SERVICES = [
+  {
+    _id: "69732308571e98b320e89e87",
+    serviceId: "WU12_GOLD_FACIAL",
+    category: "Woman Services",
+    title: "GOLD FACIAL",
+    name: "GOLD FACIAL",
+    description: "Multi-step luxurious gold leaf facial stimulating collagen, smoothing fine lines, and restoring bridal shine.",
+    price: 1200,
+    rating: 4.8,
+    image: "/images/goldfacial.webp",
+    steps: [
+      "Step 1 – Deep Cleansing: Removes surface impurities & makeup.",
+      "Step 2 – Golden Exfoliation: Gentle gold bead scrub unclogs pores.",
+      "Step 3 – Steam & Extraction: Removes blackheads and whiteheads safely.",
+      "Step 4 – Nourishing Massage: Therapeutic gold cream facial massage.",
+      "Step 5 – 24K Gold Glow Pack: Brightening peel/clay mask.",
+      "Step 6 – Hydrating Serum: Locks in luminosity and elasticity.",
+    ],
+  },
+  {
+    _id: "69732308571e98b320e89e88",
+    serviceId: "WU13_DIAMOND_FACIAL",
+    category: "Woman Services",
+    title: "DIAMOND FACIAL",
+    name: "DIAMOND FACIAL",
+    description: "Micro-exfoliation and brightening diamond serum treatment for brilliant crystal glow.",
+    price: 1100,
+    rating: 4.9,
+    image: "/images/diamondfacial.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e89",
+    serviceId: "WU14_FRUIT_FACIAL",
+    category: "Woman Services",
+    title: "FRUIT FACIAL",
+    name: "FRUIT FACIAL",
+    description: "Vitamin-rich organic fruit extract facial that detoxifies, hydrates, and restores natural radiance.",
+    price: 999,
+    rating: 4.7,
+    image: "/images/fruitfacial.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e8e",
+    serviceId: "WU19_DEEP_CLEANUP",
+    category: "Woman Services",
+    title: "DEEP CLEANUP",
+    name: "DEEP CLEANUP",
+    description: "Thorough blackhead cleansing, steam exfoliation, and detoxifying pore-tightening pack.",
+    price: 1500,
+    rating: 4.8,
+    image: "/images/deepcleanup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e8d",
+    serviceId: "WU18_INTENSE_CLEANUP",
+    category: "Woman Services",
+    title: "INTENSE CLEANUP",
+    name: "INTENSE CLEANUP",
+    description: "Deep pore suction, comedone extraction, steam, and pore-minimizing clay mask.",
+    price: 1100,
+    rating: 4.8,
+    image: "/images/intensecleanup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e8c",
+    serviceId: "WU17_GENTLE_CLEANUP",
+    category: "Woman Services",
+    title: "GENTLE CLEANUP",
+    name: "GENTLE CLEANUP",
+    description: "Mild cleansing, soothing massage, and refreshing mask for sensitive skin types.",
+    price: 1000,
+    rating: 4.7,
+    image: "/images/gentlecleanup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e82",
+    serviceId: "WU07_FULL_BODY_WAXING",
+    category: "Woman Services",
+    title: "FULL BODY WAXING",
+    name: "FULL BODY WAXING",
+    description: "Full body head-to-toe waxing ritual for velvety, radiant, hair-free skin.",
+    price: 2000,
+    rating: 4.9,
+    image: "/images/fullbodywaxing.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e7f",
+    serviceId: "WU04_FULL_ARM_WAXING",
+    category: "Woman Services",
+    title: "FULL ARM WAXING",
+    name: "FULL ARM WAXING",
+    description: "Complete hair removal for arms using gentle wax that leaves skin soft, clean, and irritation-free.",
+    price: 700,
+    rating: 4.8,
+    image: "/images/fullarmwaxing.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e81",
+    serviceId: "WU06_FULL_LEGS_WAXING",
+    category: "Woman Services",
+    title: "FULL LEGS WAXING",
+    name: "FULL LEGS WAXING",
+    description: "Smooth full-leg waxing covering toes to thighs with hygienic roll-on technology.",
+    price: 750,
+    rating: 4.8,
+    image: "/images/fulllegwaxing.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e7d",
+    serviceId: "WU02_UNDERARM_WAXING",
+    category: "Woman Services",
+    title: "UNDERARM WAXING",
+    name: "UNDERARM WAXING",
+    description: "Quick stripless underarm waxing removing dark hair and brightening the area.",
+    price: 200,
+    rating: 4.8,
+    image: "/images/underarmwaxing.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e83",
+    serviceId: "WU08_BIKINI_LINE_WAXING",
+    category: "Woman Services",
+    title: "BIKINI LINE WAXING",
+    name: "BIKINI LINE WAXING",
+    description: "Hygienic, sensitive peel-off waxing for clean and smooth bikini contour lines.",
+    price: 1100,
+    rating: 4.7,
+    image: "/images/bikiniline.jpg",
+  },
+  {
+    _id: "69732308571e98b320e89e8f",
+    serviceId: "WU20_CLASSIC_MANICURE",
+    category: "Woman Services",
+    title: "CLASSIC MANICURE",
+    name: "CLASSIC MANICURE",
+    description: "Warm soak, gentle exfoliating hand scrub, cuticle grooming, nail buffing, and relaxing massage.",
+    price: 550,
+    rating: 4.7,
+    image: "/images/classicmanicure.webp",
+  },
+  {
+    _id: "69732308571e98b320e89ea4",
+    serviceId: "WU41_CLEANUP_MANICURE",
+    category: "Woman Services",
+    title: "CLEANUP MANICURE",
+    name: "CLEANUP MANICURE",
+    description: "Deep detan hand cleanup, brightening mask, nail shaping, and relaxing cream massage.",
+    price: 750,
+    rating: 4.7,
+    image: "/images/cleanupmanicure.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e90",
+    serviceId: "WU21_CLASSIC_PEDICURE",
+    category: "Woman Services",
+    title: "CLASSIC PEDICURE",
+    name: "CLASSIC PEDICURE",
+    description: "Relaxing foot soak, cuticle treatment, heel scrub, and soothing foot massage.",
+    price: 700,
+    rating: 4.7,
+    image: "/images/classicpedicure.webp",
+  },
+  {
+    _id: "69732308571e98b320e89ea2",
+    serviceId: "WU39_CLEANUP_PEDICURE",
+    category: "Woman Services",
+    title: "CLEANUP PEDICURE",
+    name: "CLEANUP PEDICURE",
+    description: "Intense foot spa with deep cracked-heel exfoliation and calming herbal soak.",
+    price: 1000,
+    rating: 4.7,
+    image: "/images/cleanuppedicure.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e97",
+    serviceId: "WU28_CURLS_AND_WAVES",
+    category: "Woman Services",
+    title: "CURLS AND WAVES",
+    name: "CURLS AND WAVES",
+    description: "Voluminous tong curls or beachy mermaid waves set with long-lasting holding spray.",
+    price: 1100,
+    rating: 4.8,
+    image: "/images/curlsandwaves.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e99",
+    serviceId: "WU30_HAIR_STRAIGHTENING",
+    category: "Woman Services",
+    title: "HAIR STRAIGHTENING",
+    name: "HAIR STRAIGHTENING",
+    description: "Thermal heat protection and silky smooth flat iron straightening for sleek frizz-free hair.",
+    price: 550,
+    rating: 4.8,
+    image: "/images/hairstrait.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e9a",
+    serviceId: "WU31_HAIR_WASH_AND_BLOWDRY",
+    category: "Woman Services",
+    title: "HAIR WASH AND BLOWDRY",
+    name: "HAIR WASH AND BLOWDRY",
+    description: "Clarifying hair cleanse, deep conditioner, and bouncy salon blowdry finish.",
+    price: 750,
+    rating: 4.7,
+    image: "/images/hairwash.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e96",
+    serviceId: "WU27_FRENCH_HAIR_BRAIDS",
+    category: "Woman Services",
+    title: "FRENCH HAIR BRAIDS",
+    name: "FRENCH HAIR BRAIDS",
+    description: "Intricately styled French braids providing a neat, elegant, and secure hairstyle for parties and special gatherings.",
+    price: 1000,
+    rating: 4.7,
+    image: "/images/frenchbraids.webp",
+  },
+  {
+    _id: "69732308571e98b320e89ea1",
+    serviceId: "WU38_BRIDAL_MAKEUP",
+    category: "Woman Services",
+    title: "BRIDAL MAKEUP",
+    name: "BRIDAL MAKEUP",
+    description: "Premium high-definition bridal transformation with custom jewelry setting, draping, and setting.",
+    price: 10000,
+    rating: 4.9,
+    image: "/images/bridalmakeup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e91",
+    serviceId: "WU22_PARTY_MAKEUP",
+    category: "Woman Services",
+    title: "PARTY MAKEUP",
+    name: "PARTY MAKEUP",
+    description: "Glamorous party makeover featuring defined eyes, flattering contours, and glowing finish.",
+    price: 3000,
+    rating: 4.8,
+    image: "/images/partymakeup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e92",
+    serviceId: "WU23_ENGAGEMENT_MAKEUP",
+    category: "Woman Services",
+    title: "ENGAGEMENT MAKEUP",
+    name: "ENGAGEMENT MAKEUP",
+    description: "Camera-ready HD glamour makeup customized for ring ceremonies and celebratory evening lighting.",
+    price: 4000,
+    rating: 4.8,
+    image: "/images/engagementmakeup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e93",
+    serviceId: "WU24_NUDE_MAKEUP",
+    category: "Woman Services",
+    title: "NUDE MAKEUP",
+    name: "NUDE MAKEUP",
+    description: "A soft and natural makeup look that enhances features subtly for a fresh, radiant appearance. Ideal for daily wear or understated elegance.",
+    price: 2000,
+    rating: 4.7,
+    image: "/images/nudemakeup.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e8b",
+    serviceId: "WU16_DIAMOND_BLEACH",
+    category: "Woman Services",
+    title: "DIAMOND BLEACH",
+    name: "DIAMOND BLEACH",
+    description: "Sparkling diamond dust bleach treatment matching facial hair to natural skin tone with zero burn.",
+    price: 299,
+    rating: 4.6,
+    image: "/images/diamondbleach.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e8a",
+    serviceId: "WU15_GOLD_BLEACH",
+    category: "Woman Services",
+    title: "GOLD BLEACH",
+    name: "GOLD BLEACH",
+    description: "Shimmering gold bleach providing golden radiance and lightening tan gently.",
+    price: 299,
+    rating: 4.6,
+    image: "/images/goldbleach.webp",
+  },
+  {
+    _id: "69732308571e98b320e89ea3",
+    serviceId: "WU40_FRUIT_BLEACH",
+    category: "Woman Services",
+    title: "FRUIT BLEACH",
+    name: "FRUIT BLEACH",
+    description: "Mild herbal fruit bleach gentle on delicate facial skin with fruity aroma.",
+    price: 299,
+    rating: 4.5,
+    image: "/images/fruitbleach.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e9b",
+    serviceId: "WU32_EYEBROW_THREADING",
+    category: "Woman Services",
+    title: "EYEBROW THREADING",
+    name: "EYEBROW THREADING",
+    description: "A precise eyebrow threading service to shape and define eyebrows for a neat and polished look. Enhances facial symmetry while maintaining natural eyebrow appearance.",
+    price: 40,
+    rating: 4.8,
+    image: "/images/eyebrowthreading.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e9c",
+    serviceId: "WU33_UPPER_LIP_THREADING",
+    category: "Woman Services",
+    title: "UPPER LIP THREADING",
+    name: "UPPER LIP THREADING",
+    description: "Gentle organic cotton thread hair removal for smooth, clean upper lip area.",
+    price: 40,
+    rating: 4.8,
+    image: "/images/upperlipthreading.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e9f",
+    serviceId: "WU36_FULL_FACE_NECK_THREADING",
+    category: "Woman Services",
+    title: "FULL FACE AND NECK THREADING",
+    name: "FULL FACE AND NECK THREADING",
+    description: "Comprehensive threading service for brows, forehead, upper lips, chin, and neck.",
+    price: 150,
+    rating: 4.8,
+    image: "/images/fullfaceandneckthreading.webp",
+  },
+  {
+    _id: "69732308571e98b320e89e9d",
+    serviceId: "WU34_BRIDAL_MEHNDI",
+    category: "Woman Services",
+    title: "BRIDAL MEHNDI",
+    name: "BRIDAL MEHNDI",
+    description: "Detailed bridal mehndi art featuring intricate traditional motifs, dark stain quality, and customized hand and feet coverage.",
+    price: 15000,
+    rating: 4.9,
+    image: "/images/wm.jpg",
+  },
+  {
+    _id: "69732308571e98b320e89e9e",
+    serviceId: "WU35_BASIC_MEHNDI",
+    category: "Woman Services",
+    title: "BASIC MEHNDI",
+    name: "BASIC MEHNDI",
+    description: "Graceful henna designs for hands ideal for festive occasions, family gatherings, and festivals.",
+    price: 800,
+    rating: 4.6,
+    image: "/images/wm.jpg",
+  },
+];
+
+/* ================= SERVICE IMAGE FALLBACK RESOLVER ================= */
+function getServiceImage(service) {
+  if (!service) return "/images/goldfacial.webp";
+  const img = service.image || service.imageUrl || service.thumbnail;
+  if (img && typeof img === "string" && img.startsWith("/")) {
+    if (img.includes("mehndi")) {
+      return "/images/wm.jpg";
+    }
+    return img;
+  }
+  return "/images/goldfacial.webp";
+}
+
+/* ================= HOMEPAGE SERVICE CATEGORIES DEFINITION ================= */
+const CATEGORY_SECTIONS = [
+  {
+    id: "facials",
+    title: "Facials & Cleanups",
+    subtitle: "Deep pore-cleansing and radiant glow rituals with single-use kits",
+    accentColor: SPARKY_COLORS.primary,
+    bgAccent: SPARKY_COLORS.blush,
+    tagColor: SPARKY_COLORS.primary,
+    seeAllHref: "/beauty?category=FACIAL",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      const c = (s.category || "").toLowerCase();
+      return t.includes("facial") || t.includes("cleanup") || c.includes("facial");
+    },
+  },
+  {
+    id: "waxing",
+    title: "Waxing & Smooth Skin",
+    subtitle: "Painless chocolate roll-on & honey waxing for satin-soft skin",
+    accentColor: SPARKY_COLORS.primary,
+    bgAccent: SPARKY_COLORS.roseSoft,
+    tagColor: "#A82058",
+    seeAllHref: "/beauty?category=WAXING",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return (t.includes("wax") || t.includes("bikini")) && !t.includes("facial");
+    },
+  },
+  {
+    id: "hair",
+    title: "Hair Spa & Styling",
+    subtitle: "Salon blowdrys, therapeutic root spa & festive braided hairstyles",
+    accentColor: SPARKY_COLORS.teal,
+    bgAccent: SPARKY_COLORS.blueLight,
+    tagColor: SPARKY_COLORS.teal,
+    seeAllHref: "/beauty?category=HAIR",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return (
+        t.includes("hair") ||
+        t.includes("braid") ||
+        t.includes("juda") ||
+        t.includes("curls")
+      );
+    },
+  },
+  {
+    id: "manicure",
+    title: "Manicure & Pedicure",
+    subtitle: "Relaxing foot soak, cuticle groom, heel scrub & tension massage",
+    accentColor: SPARKY_COLORS.brownDeep,
+    bgAccent: SPARKY_COLORS.cream,
+    tagColor: SPARKY_COLORS.brownDeep,
+    seeAllHref: "/beauty?category=MANICURE",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return t.includes("manicure") || t.includes("pedicure");
+    },
+  },
+  {
+    id: "makeup",
+    title: "Party & Bridal Makeup",
+    subtitle: "HD & airbrush glam tailored for functions by certified artists",
+    accentColor: SPARKY_COLORS.primary,
+    bgAccent: SPARKY_COLORS.blush,
+    tagColor: SPARKY_COLORS.primary,
+    seeAllHref: "/beauty?category=MAKEUP",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return t.includes("makeup");
+    },
+  },
+  {
+    id: "bleach",
+    title: "Glow Bleach & Detan",
+    subtitle: "Instant radiance & sun-tan reversal with soothing pre/post creams",
+    accentColor: SPARKY_COLORS.sageAccent,
+    bgAccent: SPARKY_COLORS.sage,
+    tagColor: "#676337",
+    seeAllHref: "/beauty?category=BLEACH",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return t.includes("bleach") || t.includes("detan");
+    },
+  },
+  {
+    id: "threading",
+    title: "Threading & Facial Grooming",
+    subtitle: "Precision organic cotton threading for neat, symmetrical brows",
+    accentColor: SPARKY_COLORS.primary,
+    bgAccent: SPARKY_COLORS.blush,
+    tagColor: SPARKY_COLORS.primary,
+    seeAllHref: "/beauty?category=THREADING",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return t.includes("threading");
+    },
+  },
+  {
+    id: "mehndi",
+    title: "Mehndi Rituals",
+    subtitle: "Exquisite organic henna art for brides and festival celebrations",
+    accentColor: SPARKY_COLORS.brownDeep,
+    bgAccent: SPARKY_COLORS.cream,
+    tagColor: SPARKY_COLORS.brownDeep,
+    seeAllHref: "/beauty?category=ALL",
+    matcher: (s) => {
+      const t = (s.title || s.name || "").toLowerCase();
+      return t.includes("mehndi");
+    },
+  },
+  {
+    id: "cleaning",
+    title: "Home Deep Cleaning",
+    subtitle: "Hospital-grade sanitization, sofa wash & kitchen deep cleansing",
+    accentColor: SPARKY_COLORS.teal,
+    bgAccent: SPARKY_COLORS.blueLight,
+    tagColor: SPARKY_COLORS.teal,
+    seeAllHref: "/clean",
+    matcher: (s) => {
+      const c = (s.category || "").toLowerCase();
+      const t = (s.title || s.name || "").toLowerCase();
+      return (
+        c.includes("cleaning") ||
+        t.includes("cleaning") ||
+        t.includes("sofa") ||
+        t.includes("bathroom")
+      );
+    },
+  },
+  {
+    id: "eventdecor",
+    title: "Event Decoration",
+    subtitle: "Bespoke balloon arches, floral setups & celebration styling",
+    accentColor: SPARKY_COLORS.brownDeep,
+    bgAccent: SPARKY_COLORS.cream,
+    tagColor: SPARKY_COLORS.brownDeep,
+    seeAllHref: "/eventdecor",
+    matcher: (s) => {
+      const c = (s.category || "").toLowerCase();
+      const t = (s.title || s.name || "").toLowerCase();
+      return c.includes("event") || t.includes("decor");
+    },
+  },
 ];
 
 export default function SparkyServiceApp() {
@@ -77,7 +598,8 @@ export default function SparkyServiceApp() {
   const [address, setAddress] = useState("Amritsar, Punjab");
 
   const [orders, setOrders] = useState([]);
-  const [services, setServices] = useState(INITIAL_SERVICES);
+  const [services, setServices] = useState(INITIAL_AUTHENTIC_SERVICES);
+  const [cart, setCart] = useState([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -86,7 +608,9 @@ export default function SparkyServiceApp() {
   const [minCartError, setMinCartError] = useState("");
   const [mobileCategoryFilter, setMobileCategoryFilter] = useState("all");
 
-  // Amritsar Delivery Boundary Definition
+  const MIN_CART_VALUE = 299;
+
+  // Amritsar Delivery Boundary Definition (Preserved)
   const AMRITSAR_BOUNDS = [
     { lat: 31.709249, lng: 74.817049 }, // North-West
     { lat: 31.666412, lng: 74.959695 }, // North-East
@@ -121,43 +645,63 @@ export default function SparkyServiceApp() {
     (order) => order.status !== "cancelled" && order.status !== "completed"
   );
 
-  // Fetch Services from Database API
- useEffect(() => {
-  const controller = new AbortController();
-
-  const fetchServices = async () => {
+  // Sync Cart from LocalStorage
+  const syncCart = useCallback(() => {
     try {
-      const res = await fetch("/api/services", {
-        signal: controller.signal,
-      });
-
-      if (!res.ok) {
-        throw new Error(`Services API failed: ${res.status}`);
+      const saved = localStorage.getItem("cart");
+      if (saved) {
+        setCart(JSON.parse(saved));
+      } else {
+        setCart([]);
       }
-
-      const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("Services API did not return an array");
-      }
-
-      setServices(data);
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        console.error("Error fetching services:", error);
-        setServices([]);
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setServicesLoading(false);
-      }
+    } catch {
+      setCart([]);
     }
-  };
+  }, []);
 
-  fetchServices();
+  useEffect(() => {
+    syncCart();
+    window.addEventListener("storage", syncCart);
+    window.addEventListener("sparky-cart-change", syncCart);
+    return () => {
+      window.removeEventListener("storage", syncCart);
+      window.removeEventListener("sparky-cart-change", syncCart);
+    };
+  }, [syncCart]);
 
-  return () => controller.abort();
-}, []);
+  // Fetch Services from Database API
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchServices = async () => {
+      try {
+        const res = await fetch("/api/services", {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Services API failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          setServices(data);
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Error fetching services:", error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setServicesLoading(false);
+        }
+      }
+    };
+
+    fetchServices();
+    return () => controller.abort();
+  }, []);
 
   // Fetch User Orders for Floating Tracker
   useEffect(() => {
@@ -184,14 +728,14 @@ export default function SparkyServiceApp() {
         try {
           const parsed = JSON.parse(savedObj);
           if (parsed.address) setAddress(parsed.address);
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
     }
   }, []);
 
-  // Real-time Search Logic connecting to DB services
+  // Live Search Logic connecting to DB services
   useEffect(() => {
     if (query.trim().length < 2) {
       setResults([]);
@@ -220,21 +764,60 @@ export default function SparkyServiceApp() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const getCartTotal = () => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    return cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
-  };
+  // Lock body scroll when popup is open
+  useEffect(() => {
+    if (selectedService) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedService]);
 
-  const MIN_CART_VALUE = 299;
+  // Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSelectedService(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  const handleBooking = (service) => {
+  // Cart total calculator
+  const cartTotal = useMemo(() => {
+    return cart.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+      0
+    );
+  }, [cart]);
+
+  // Check how many of a service are currently in cart
+  const getCartQuantity = useCallback(
+    (service) => {
+      if (!service) return 0;
+      const title = service.name || service.title;
+      const found = cart.find((i) => i.title === title);
+      return found ? found.quantity || 1 : 0;
+    },
+    [cart]
+  );
+
+  // Add service to cart
+  const handleAddToCart = (e, service) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!service) return;
+
     const itemToAdd = {
       title: service.name || service.title,
       price:
         typeof service.price === "string"
           ? parseInt(service.price.replace(/[₹,\s]/g, ""), 10)
           : service.price,
-      image: service.image || service.imageUrl || "/images/goldfacial.webp",
+      image: getServiceImage(service),
       quantity: 1,
       category: service.category || "Woman Services",
       earning: service.earning || 0,
@@ -247,27 +830,89 @@ export default function SparkyServiceApp() {
     );
 
     if (existingIndex > -1) {
-      existingCart[existingIndex].quantity = (existingCart[existingIndex].quantity || 1) + 1;
+      existingCart[existingIndex].quantity =
+        (existingCart[existingIndex].quantity || 1) + 1;
     } else {
       existingCart.push(itemToAdd);
     }
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
+    setCart(existingCart);
     window.dispatchEvent(new Event("storage"));
     window.dispatchEvent(new Event("sparky-cart-change"));
 
-    const total = getCartTotal();
-    if (total < MIN_CART_VALUE) {
-      const remaining = MIN_CART_VALUE - total;
+    toast.success(`${itemToAdd.title} added to bag!`, {
+      icon: "🛍️",
+      style: {
+        borderRadius: "14px",
+        background: "#25232A",
+        color: "#fff",
+        fontSize: "12px",
+        fontWeight: "700",
+      },
+    });
+
+    const newTotal = existingCart.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+      0
+    );
+
+    if (newTotal < MIN_CART_VALUE) {
+      const remaining = MIN_CART_VALUE - newTotal;
       setMinCartError(`Add ₹${remaining} more service`);
-      return;
+    } else {
+      setMinCartError("");
+    }
+  };
+
+  // Stepper quantity update for detail modal
+  const handleUpdateQuantity = (service, delta) => {
+    if (!service) return;
+    const title = service.name || service.title;
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const index = existingCart.findIndex((i) => i.title === title);
+
+    if (index > -1) {
+      const currentQty = existingCart[index].quantity || 1;
+      const newQty = currentQty + delta;
+      if (newQty <= 0) {
+        existingCart.splice(index, 1);
+      } else {
+        existingCart[index].quantity = newQty;
+      }
+    } else if (delta > 0) {
+      existingCart.push({
+        title,
+        price:
+          typeof service.price === "string"
+            ? parseInt(service.price.replace(/[₹,\s]/g, ""), 10)
+            : service.price,
+        image: getServiceImage(service),
+        quantity: 1,
+        category: service.category || "Woman Services",
+        earning: service.earning || 0,
+        profit: service.profit || 0,
+      });
     }
 
-    setMinCartError("");
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    setCart(existingCart);
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("sparky-cart-change"));
+  };
+
+  // Immediate "Book Now" action
+  const handleBookNow = (service) => {
+    if (!service) return;
+    const qty = getCartQuantity(service);
+    if (qty === 0) {
+      handleAddToCart(null, service);
+    }
+    setSelectedService(null);
     router.push("/cart");
   };
 
-  // Scroll to section when desktop category is clicked
+  // Scroll to section when desktop category is clicked (Preserved)
   const handleDesktopCategoryClick = (categoryName) => {
     const elements = document.querySelectorAll("h3, h2");
     for (const el of elements) {
@@ -280,26 +925,78 @@ export default function SparkyServiceApp() {
     }
   };
 
-  // Mobile service categories to display
-  const mobileDisplayCategories = [
-    { key: "Facial", label: "Facials & Cleanups" },
-    { key: "Waxing", label: "Smooth Waxing Rituals" },
-    { key: "Hair", label: "Hair Spa & Styling" },
-    { key: "Manicure", label: "Manicure & Pedicure" },
-    { key: "Makeup", label: "Party & Bridal Makeup" },
-    { key: "Bleach", label: "Glow Bleach Treatments" },
-  ];
+  // Group backend services into authentic category sections
+  const groupedCategories = useMemo(() => {
+    const safeServices = Array.isArray(services) && services.length > 0
+      ? services
+      : INITIAL_AUTHENTIC_SERVICES;
 
-  const activeMobileCategories =
-    mobileCategoryFilter === "all"
-      ? mobileDisplayCategories
-      : mobileDisplayCategories.filter((c) =>
-          c.key.toLowerCase().includes(mobileCategoryFilter.toLowerCase())
-        );
+    const sections = CATEGORY_SECTIONS.map((sec) => {
+      const matched = safeServices.filter(sec.matcher);
+      return {
+        ...sec,
+        services: matched,
+      };
+    }).filter((sec) => sec.services.length > 0);
+
+    // Apply mobile category strip filter if selected
+    if (mobileCategoryFilter === "all" || !mobileCategoryFilter) {
+      return sections;
+    }
+
+    // Map strip IDs to category sections
+    const idMap = {
+      beauty: "facials",
+      clean: "facials",
+      eventdecor: "makeup",
+      haute: "waxing",
+      hair: "hair",
+      manicure: "manicure",
+    };
+
+    const targetId = idMap[mobileCategoryFilter] || mobileCategoryFilter;
+    const filtered = sections.filter(
+      (sec) =>
+        sec.id.toLowerCase().includes(targetId.toLowerCase()) ||
+        sec.title.toLowerCase().includes(targetId.toLowerCase())
+    );
+
+    return filtered.length > 0 ? filtered : sections;
+  }, [services, mobileCategoryFilter]);
+
+  // Handle Mobile Category Strip selection with smooth scroll
+  const handleMobileCategorySelect = (catId) => {
+    if (mobileCategoryFilter === catId) {
+      setMobileCategoryFilter("all");
+      return;
+    }
+    setMobileCategoryFilter(catId);
+
+    const idMap = {
+      beauty: "cat-facials",
+      clean: "cat-facials",
+      eventdecor: "cat-makeup",
+      haute: "cat-waxing",
+      hair: "cat-hair",
+      manicure: "cat-manicure",
+    };
+
+    const targetElId = idMap[catId];
+    if (targetElId) {
+      setTimeout(() => {
+        const el = document.getElementById(targetElId);
+        if (el) {
+          const offset = 90;
+          const pos = el.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top: pos - offset, behavior: "smooth" });
+        }
+      }, 100);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-[#F7F7F5] lg:bg-gradient-to-b lg:from-[#FFF8F6] lg:via-[#FFF1F5] lg:to-[#FFF7FB] text-[#25232A]">
-      {/* ================= USER MAP MODAL ================= */}
+      {/* ================= USER MAP MODAL (PRESERVED) ================= */}
       <AnimatePresence>
         {showMap && (
           <motion.div
@@ -312,7 +1009,7 @@ export default function SparkyServiceApp() {
               <button
                 type="button"
                 onClick={() => setShowMap(false)}
-                className="btn-icon w-11 h-11 shadow-lg bg-white rounded-full flex items-center justify-center"
+                className="btn-icon w-11 h-11 shadow-lg bg-white rounded-full flex items-center justify-center cursor-pointer"
               >
                 <X size={20} className="text-[#25232A]" />
               </button>
@@ -352,7 +1049,7 @@ export default function SparkyServiceApp() {
                     <button
                       type="button"
                       onClick={() => setOutOfBounds(false)}
-                      className="mt-8 px-8 py-3 bg-white text-[#25232A] font-black text-xs uppercase tracking-wider rounded-xl shadow-lg"
+                      className="mt-8 px-8 py-3 bg-white text-[#25232A] font-black text-xs uppercase tracking-wider rounded-xl shadow-lg cursor-pointer"
                     >
                       Back to City
                     </button>
@@ -380,7 +1077,7 @@ export default function SparkyServiceApp() {
                 className={`px-8 py-3.5 font-bold uppercase tracking-wider text-xs flex items-center gap-2 rounded-full shadow-lg ${
                   outOfBounds || !pendingLocation
                     ? "bg-gray-800 text-gray-500 opacity-50 cursor-not-allowed"
-                    : "btn-primary-pill bg-[#C2306B] text-white"
+                    : "btn-primary-pill bg-[#C2306B] text-white cursor-pointer"
                 }`}
               >
                 <CheckCircle2 size={18} /> Confirm Location
@@ -390,10 +1087,10 @@ export default function SparkyServiceApp() {
         )}
       </AnimatePresence>
 
-      {/* ================= 4. MOBILE HEADER (Inspired by Blinkit Location-First Layout) ================= */}
+      {/* ================= 4. MOBILE HEADER (Compact, Location-First, Search-Ready) ================= */}
       <header className="lg:hidden sticky top-0 left-0 right-0 z-40 bg-white border-b border-[#EAE7E9] px-3.5 pt-2.5 pb-2.5 shadow-[0_2px_10px_rgba(37,35,42,0.04)]">
         {/* Top Row: Brand & Delivery Promise + Location Selector + Account Shortcut */}
-        <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center justify-between mb-2">
           {/* Left: Brand + Location */}
           <div className="flex flex-col min-w-0 pr-2">
             <div className="flex items-center gap-1.5">
@@ -401,7 +1098,7 @@ export default function SparkyServiceApp() {
                 SPARKY<span className="text-[#C2306B]">.</span>
               </span>
               <span className="text-[10px] font-semibold text-[#77717A] tracking-tight truncate">
-                • Expert doorstep services
+                • Doorstep Salon & Services
               </span>
             </div>
 
@@ -411,11 +1108,11 @@ export default function SparkyServiceApp() {
               onClick={() => setShowMap(true)}
               className="inline-flex items-center gap-1 text-left mt-0.5 focus:outline-none cursor-pointer group active:opacity-80"
             >
-              <MapPin size={13} className="text-[#C2306B] shrink-0" />
+              <MapPin size={12} className="text-[#C2306B] shrink-0" />
               <span className="text-[12px] font-black text-[#25232A] truncate max-w-[210px] tracking-tight">
                 {address}
               </span>
-              <ChevronDown size={13} className="text-[#77717A] shrink-0" />
+              <ChevronDown size={12} className="text-[#77717A] shrink-0" />
             </button>
           </div>
 
@@ -429,24 +1126,24 @@ export default function SparkyServiceApp() {
                 openLoginModal({ redirectTo: "/user" });
               }
             }}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F7F7F5] border border-[#EAE7E9] text-[#25232A] shadow-xs active:scale-95 transition-transform"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F7F7F5] border border-[#EAE7E9] text-[#25232A] shadow-xs active:scale-95 transition-transform cursor-pointer"
             aria-label="User Account"
           >
-            <User size={16} className="text-[#25232A]" />
+            <User size={15} className="text-[#25232A]" />
           </button>
         </div>
 
         {/* Bottom Row: Search Bar + Filter Icon */}
         <div className="flex items-center gap-2">
           <div ref={searchRef} className="relative flex-1">
-            <div className="flex h-[42px] items-center rounded-xl bg-[#F7F7F5] border border-[#EAE7E9] px-3 transition-colors focus-within:bg-white focus-within:border-[#C2306B]/50 focus-within:shadow-xs">
-              <Search size={16} className="text-[#77717A] mr-2 shrink-0" />
+            <div className="flex h-[40px] items-center rounded-xl bg-[#F7F7F5] border border-[#EAE7E9] px-3 transition-colors focus-within:bg-white focus-within:border-[#C2306B]/50 focus-within:shadow-xs">
+              <Search size={15} className="text-[#77717A] mr-2 shrink-0" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search cleaning, beauty, facial, AC..."
-                className="flex-1 bg-transparent text-[13px] font-medium text-[#25232A] outline-none placeholder:text-[#77717A]"
+                placeholder="Search facials, waxing, hair spa, cleanup..."
+                className="flex-1 bg-transparent text-[12.5px] font-medium text-[#25232A] outline-none placeholder:text-[#77717A]"
               />
               {query && (
                 <button
@@ -474,7 +1171,7 @@ export default function SparkyServiceApp() {
                   >
                     <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-[#F7F7F5] shrink-0 border border-[#EAE7E9]">
                       <Image
-                        src={item.image || "/images/goldfacial.webp"}
+                        src={getServiceImage(item)}
                         alt={item.name || item.title}
                         fill
                         className="object-cover"
@@ -502,9 +1199,9 @@ export default function SparkyServiceApp() {
             type="button"
             onClick={() => router.push("/beauty")}
             aria-label="Filter Services"
-            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-[#F7F7F5] border border-[#EAE7E9] text-[#25232A] shadow-xs active:scale-95 transition-transform"
+            className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-xl bg-[#F7F7F5] border border-[#EAE7E9] text-[#25232A] shadow-xs active:scale-95 transition-transform cursor-pointer"
           >
-            <SlidersHorizontal size={16} className="text-[#25232A]" />
+            <SlidersHorizontal size={15} className="text-[#25232A]" />
           </button>
         </div>
       </header>
@@ -512,16 +1209,32 @@ export default function SparkyServiceApp() {
       {/* ================= 5. HORIZONTAL CATEGORY NAVIGATION (Mobile Only) ================= */}
       <MobileCategoryStrip
         activeCategory={mobileCategoryFilter}
-        onSelectCategory={(catId) => setMobileCategoryFilter(catId)}
+        onSelectCategory={handleMobileCategorySelect}
       />
 
-      {/* ================= 6. MOBILE FESTIVAL HERO SECTION (Configurable, Mobile Only) ================= */}
+      {/* Quick "All Categories" Reset Pill when filtered */}
+      {mobileCategoryFilter !== "all" && (
+        <div className="lg:hidden px-3.5 pt-2 flex items-center justify-between">
+          <span className="text-[11px] font-bold text-[#77717A]">
+            Showing filtered category
+          </span>
+          <button
+            type="button"
+            onClick={() => setMobileCategoryFilter("all")}
+            className="text-[11px] font-extrabold text-[#C2306B] underline cursor-pointer"
+          >
+            Show All Categories
+          </button>
+        </div>
+      )}
+
+      {/* ================= 6. MOBILE FESTIVAL HERO SECTION (Mobile Only) ================= */}
       <MobileFestivalHero />
 
       {/* ================= 7. PROMOTIONAL SERVICE CARDS (Mobile Only) ================= */}
       <MobilePromoCards />
 
-      {/* ================= DESKTOP HERO SECTION (PRESERVED 100% FOR DESKTOP / LAPTOPS) ================= */}
+      {/* ================= DESKTOP HERO SECTION (100% PRESERVED FOR LAPTOPS) ================= */}
       <section className="hidden lg:block relative overflow-hidden pt-10 pb-16 md:pt-16 md:pb-24 bg-gradient-to-b from-white via-white/80 to-[#FFF7F3]">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#C2306B]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-10 w-80 h-80 bg-[#8E4FD6]/5 rounded-full blur-3xl pointer-events-none" />
@@ -545,7 +1258,7 @@ export default function SparkyServiceApp() {
               transition={{ delay: 0.1 }}
               className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#2B1B2E] tracking-tight leading-[1.12]"
             >
-              Salon Luxury & Master Repairs,{" "}
+              Salon Luxury & Master Care,{" "}
               <span className="bg-gradient-to-r from-[#C2306B] via-[#A83DAA] to-[#8E4FD6] bg-clip-text text-transparent">
                 Delivered to Your Door.
               </span>
@@ -559,7 +1272,7 @@ export default function SparkyServiceApp() {
             >
               Sparky was built on a simple promise: make professional home and
               beauty services effortless, safe, and transparent. No endless phone
-              calls, no bargaining, and no compromises on hygiene.
+              calls, no bargaining, and zero compromises on hygiene.
             </motion.p>
 
             <motion.div
@@ -619,7 +1332,7 @@ export default function SparkyServiceApp() {
         </div>
       </section>
 
-      {/* ================= DESKTOP CATEGORY ICONS STRIP (PRESERVED FOR LAPTOPS) ================= */}
+      {/* ================= DESKTOP CATEGORY ICONS STRIP (PRESERVED) ================= */}
       <section className="hidden lg:block mt-2 px-4">
         <div className="max-w-7xl mx-auto p-6 rounded-[24px] bg-white border border-[#F1DFE8] shadow-[0_4px_18px_rgba(105,43,79,0.07)]">
           <div className="grid grid-cols-8 gap-4">
@@ -650,13 +1363,13 @@ export default function SparkyServiceApp() {
         </div>
       </section>
 
-      {/* ================= DESKTOP BEAUTY BANNER CAROUSEL ================= */}
+      {/* ================= DESKTOP BEAUTY BANNER CAROUSEL (PRESERVED) ================= */}
       <div className="hidden lg:block">
         <BeautyBannerCarousel />
       </div>
 
-      {/* ================= 8. MAIN SERVICE DISCOVERY (Clean Mobile Market Sections) ================= */}
-      <main className="px-3.5 sm:px-4 lg:px-6 space-y-6 pt-3 pb-24 lg:pb-16 max-w-7xl mx-auto">
+      {/* ================= 8. MAIN SERVICE DISCOVERY (EXACT 3-CARD MOBILE LAYOUT) ================= */}
+      <main className="px-3.5 sm:px-4 lg:px-6 space-y-7 pt-4 pb-28 lg:pb-16 max-w-7xl mx-auto">
         {/* Active Order Floating Tracker */}
         {activeOrder && (
           <div className="block lg:hidden">
@@ -664,115 +1377,170 @@ export default function SparkyServiceApp() {
           </div>
         )}
 
-        {/* MOBILE CATEGORY SECTIONS (Blinkit marketplace clean cards) */}
-        <div className="block lg:hidden space-y-6">
-          {activeMobileCategories.map((subCat) => {
-            const safeServices = Array.isArray(services) && services.length > 0 ? services : [
-              { id: "fb-1", name: `${subCat.key} Ritual Care`, title: `${subCat.key} Ritual Care`, price: 799, image: "/images/goldfacial.webp", category: "Woman Services", rating: 4.9 },
-              { id: "fb-2", name: `Express ${subCat.key}`, title: `Express ${subCat.key}`, price: 499, image: "/images/deepcleanup.webp", category: "Woman Services", rating: 4.8 },
-            ];
+        {/* LOADING SKELETON */}
+        {servicesLoading && (
+          <div className="space-y-6 block">
+            {[1, 2].map((k) => (
+              <div key={k} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-36 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="h-3 w-16 bg-gray-200 rounded-full animate-pulse" />
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((card) => (
+                    <div
+                      key={card}
+                      className="w-[calc((100%-16px)/3)] min-w-[calc((100%-16px)/3)] h-44 rounded-2xl bg-white border border-[#EAE7E9] p-2 space-y-2 animate-pulse"
+                    >
+                      <div className="aspect-square w-full rounded-xl bg-gray-200" />
+                      <div className="h-3 w-3/4 bg-gray-200 rounded" />
+                      <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-            const filteredServices = safeServices.filter(
-              (item) =>
-                (item.category === "Woman Services" || !item.category) &&
-                (item.name || item.title || "")
-                  .toLowerCase()
-                  .includes(subCat.key.toLowerCase())
-            );
-
-            const displayServices = (filteredServices.length > 0 ? filteredServices : safeServices).slice(0, 4);
-
+        {/* ================= CATEGORY SERVICE SECTIONS (3 CARDS PER ROW MOBILE) ================= */}
+        {!servicesLoading &&
+          groupedCategories.map((group) => {
             return (
-              <section key={subCat.key} className="space-y-3">
-                {/* Section Header */}
-                <div className="flex items-center justify-between px-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="h-4 w-1 rounded-full bg-[#C2306B]" />
-                    <h3 className="text-[15px] font-extrabold tracking-tight text-[#25232A]">
-                      {subCat.label}
-                    </h3>
+              <section
+                key={group.id}
+                id={`cat-${group.id}`}
+                className="space-y-2.5 scroll-mt-24"
+              >
+                {/* Section Header: Heading on left, Subtitle, See all on right */}
+                <div className="flex items-end justify-between px-0.5">
+                  <div className="flex items-start gap-2 min-w-0 pr-2">
+                    {/* Category subtle color accent bar */}
+                    <span
+                      className="w-1 h-5 rounded-full mt-0.5 shrink-0"
+                      style={{ backgroundColor: group.accentColor }}
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="text-[15px] min-[380px]:text-[16px] font-black tracking-tight text-[#25232A]">
+                          {group.title}
+                        </h3>
+                        <span
+                          className="text-[9.5px] font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider"
+                          style={{
+                            backgroundColor: group.bgAccent,
+                            color: group.tagColor,
+                          }}
+                        >
+                          {group.services.length}
+                        </span>
+                      </div>
+                      {group.subtitle && (
+                        <p className="text-[11px] text-[#77717A] font-medium leading-tight mt-0.5 line-clamp-1">
+                          {group.subtitle}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      router.push(
-                        `/beauty?category=${encodeURIComponent(subCat.key.toUpperCase())}`
-                      )
-                    }
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#C2306B] hover:underline"
+                  {/* See all action */}
+                  <Link
+                    href={group.seeAllHref}
+                    className="inline-flex items-center gap-0.5 text-[11px] font-bold shrink-0 hover:underline mb-0.5 active:opacity-70 transition-opacity"
+                    style={{ color: group.accentColor }}
                   >
-                    <span>View all</span>
+                    <span>See all</span>
                     <ChevronRight size={13} strokeWidth={2.5} />
-                  </button>
+                  </Link>
                 </div>
 
-                {/* 2-Column Responsive Service Grid for Mobile */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {displayServices.map((item) => {
-                    const image =
-                      item.image || item.imageUrl || item.thumbnail || "/images/goldfacial.webp";
-                    const title = item.name || item.title;
+                {/* 
+                  3-CARDS PER ROW MOBILE HORIZONTAL PRESENTATION:
+                  - flex with gap-2 (8px gap)
+                  - card width = calc((100% - 16px) / 3)
+                  - snap-x snap-mandatory for smooth native snapping
+                  - scrollbar-none to hide scrollbar while preserving touch scrolling
+                  - lg:grid lg:grid-cols-4 xl:grid-cols-6 on desktop for spacious luxury layout
+                */}
+                <div className="flex gap-2 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1 pt-0.5 -mx-3.5 px-3.5 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 xl:grid-cols-6 lg:gap-4 lg:overflow-visible">
+                  {group.services.map((service) => {
+                    const image = getServiceImage(service);
+                    const title = service.name || service.title;
                     const price =
-                      Number(String(item.price ?? 0).replace(/[₹,\s]/g, "")) || 0;
-                    const originalPrice = Math.round(price * 1.25);
+                      Number(
+                        String(service.price ?? 0).replace(/[₹,\s]/g, "")
+                      ) || 0;
+                    const cartQty = getCartQuantity(service);
+                    const isInCart = cartQty > 0;
 
                     return (
                       <div
-                        key={item._id || item.id || title}
-                        onClick={() => setSelectedService(item)}
-                        className="group relative flex flex-col justify-between overflow-hidden rounded-[18px] border border-[#EAE7E9] bg-white p-2.5 shadow-[0_2px_8px_rgba(37,35,42,0.04)] active:scale-[0.98] transition-all cursor-pointer"
+                        key={service._id || service.serviceId || title}
+                        onClick={() => setSelectedService(service)}
+                        className="w-[calc((100vw-28px-16px)/3)] min-w-[calc((100vw-28px-16px)/3)] max-w-[calc((100vw-28px-16px)/3)] lg:w-auto lg:min-w-0 lg:max-w-none shrink-0 snap-start flex flex-col justify-between overflow-hidden rounded-[14px] min-[380px]:rounded-[16px] border border-[#EAE7E9] bg-white p-1.5 min-[380px]:p-2 shadow-[0_2px_8px_rgba(37,35,42,0.04)] active:scale-[0.98] transition-all cursor-pointer group hover:border-[#C2306B]/30 hover:shadow-md"
                       >
-                        {/* Service Image with Rating Tag */}
-                        <div className="relative aspect-square w-full overflow-hidden rounded-[14px] bg-[#F7F7F5]">
+                        {/* Service Image with Rating & Compact Add Button */}
+                        <div className="relative aspect-square w-full overflow-hidden rounded-[10px] min-[380px]:rounded-[12px] bg-[#FAF7F8]">
                           <Image
                             src={image}
                             alt={title}
                             fill
-                            sizes="(max-width: 640px) 160px, 200px"
+                            sizes="(max-width: 640px) 120px, 200px"
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
 
-                          {/* Rating Badge */}
-                          <div className="absolute top-2 left-2 flex items-center gap-0.5 rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] font-extrabold text-[#25232A] shadow-xs border border-[#EAE7E9]">
-                            <Star size={10} fill="#f59e0b" className="text-amber-500" />
-                            <span>{item.rating || "4.8"}</span>
-                          </div>
+                          {/* Star Rating Badge on Image */}
+                          {service.rating && (
+                            <div className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-white/95 px-1 py-0.5 text-[8.5px] min-[380px]:text-[9px] font-black text-[#25232A] shadow-xs border border-[#EAE7E9]/80 backdrop-blur-xs">
+                              <Star
+                                size={8.5}
+                                fill="#F59E0B"
+                                className="text-amber-500"
+                              />
+                              <span>{service.rating}</span>
+                            </div>
+                          )}
 
-                          {/* Quick Add Button */}
+                          {/* Compact Add Button (Yes Madam / Urban Company style) */}
                           <button
                             type="button"
                             aria-label={`Add ${title}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBooking(item);
-                            }}
-                            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#C2306B] text-white shadow-md active:scale-90 transition-transform cursor-pointer"
+                            onClick={(e) => handleAddToCart(e, service)}
+                            className={`absolute bottom-1 right-1 flex items-center justify-center rounded-md px-1.5 min-[380px]:px-2 py-0.5 text-[9px] min-[380px]:text-[9.5px] font-black uppercase tracking-wider transition-all shadow-xs active:scale-90 cursor-pointer ${
+                              isInCart
+                                ? "bg-[#C2306B] text-white border border-[#C2306B]"
+                                : "bg-white text-[#C2306B] border border-[#C2306B] hover:bg-[#FCF1F5]"
+                            }`}
                           >
-                            <Plus size={16} strokeWidth={2.5} />
+                            {isInCart ? (
+                              <span className="flex items-center gap-0.5">
+                                <Check size={10} strokeWidth={3} />
+                                <span>{cartQty}</span>
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-0.5">
+                                <span>ADD</span>
+                                <Plus size={9} strokeWidth={3} />
+                              </span>
+                            )}
                           </button>
                         </div>
 
-                        {/* Service Title */}
-                        <div className="mt-2.5 flex-1">
-                          <h4 className="text-[12px] font-bold leading-[1.35] text-[#25232A] line-clamp-2">
+                        {/* Service Details below image */}
+                        <div className="mt-1.5 flex flex-col justify-between flex-1">
+                          <h4 className="text-[10.5px] min-[380px]:text-[11.5px] font-bold leading-[1.25] text-[#25232A] line-clamp-2 h-[26px] min-[380px]:h-[29px] overflow-hidden">
                             {title}
                           </h4>
-                        </div>
 
-                        {/* Price Row */}
-                        <div className="mt-2 flex items-baseline justify-between border-t border-[#F7F7F5] pt-1.5">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-[13px] font-black text-[#25232A]">
+                          {/* Price Row */}
+                          <div className="mt-1 flex items-baseline justify-between border-t border-[#F7F7F5] pt-1">
+                            <span className="text-[11.5px] min-[380px]:text-[12.5px] font-black text-[#25232A] tracking-tight">
                               ₹{price}
                             </span>
-                            <span className="text-[10px] font-medium text-[#77717A] line-through">
-                              ₹{originalPrice}
+                            <span className="text-[8px] font-extrabold text-[#77717A] uppercase tracking-wider">
+                              Sparky
                             </span>
                           </div>
-                          <span className="text-[9px] font-extrabold text-[#C2306B] uppercase tracking-wider">
-                            Verified
-                          </span>
                         </div>
                       </div>
                     );
@@ -781,22 +1549,21 @@ export default function SparkyServiceApp() {
               </section>
             );
           })}
-        </div>
 
-        {/* VALUE COMBO PACKAGES (Shared for Mobile & Desktop) */}
+        {/* VALUE COMBO PACKAGES (Shared for Mobile & Desktop - Preserved) */}
         <section aria-label="Combo Packages" className="pt-2">
           <ValueComboPackages />
         </section>
 
-        {/* DESKTOP-ONLY ABOUT SECTIONS */}
+        {/* DESKTOP-ONLY ABOUT SECTIONS (Preserved) */}
         <div className="hidden lg:block pt-6">
           <AboutSections />
         </div>
       </main>
 
-      {/* ================= MINIMUM CART ERROR BAR ================= */}
+      {/* ================= MINIMUM CART ERROR BAR (Preserved) ================= */}
       {minCartError && (
-        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm rounded-2xl bg-white/95 border border-[#EAE7E9] p-3 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="fixed bottom-18 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm rounded-2xl bg-white/95 border border-[#EAE7E9] p-3 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FFF0F6] text-[#C2306B] font-black text-sm border border-[#F1DFE8]">
               ₹
@@ -812,7 +1579,7 @@ export default function SparkyServiceApp() {
             <button
               type="button"
               onClick={() => router.push("/beauty")}
-              className="rounded-lg bg-[#C2306B] px-3 py-1.5 text-[10px] font-bold uppercase text-white shadow-xs"
+              className="rounded-lg bg-[#C2306B] px-3 py-1.5 text-[10px] font-bold uppercase text-white shadow-xs cursor-pointer"
             >
               Add
             </button>
@@ -820,135 +1587,206 @@ export default function SparkyServiceApp() {
         </div>
       )}
 
-      {/* ================= SERVICE DETAIL DRAWER / MODAL ================= */}
-      {/* Backdrop */}
-      <div
-        onClick={() => setSelectedService(null)}
-        className={`fixed inset-0 z-[60] bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${
-          selectedService ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
-        }`}
-      />
-
-      {/* Drawer Container */}
-      <div
-        className={`fixed z-[70] overflow-hidden bg-white border border-[#EAE7E9] transition-all duration-300 ease-out
-          /* Mobile: Slide-up Bottom Sheet */
-          bottom-0 left-0 right-0 w-full rounded-t-[28px] shadow-[0_-12px_36px_rgba(37,35,42,0.18)]
-          /* Laptop: Centered Modal Dialog */
-          lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:-translate-x-1/2 lg:max-w-md lg:rounded-[28px] lg:shadow-2xl
-          ${
-            selectedService
-              ? "translate-y-0 lg:-translate-y-1/2 opacity-100 visible"
-              : "translate-y-full lg:opacity-0 lg:invisible pointer-events-none"
-          }`}
-      >
-        {/* Mobile Pull Handle */}
-        <div className="mx-auto mt-2.5 mb-1 h-1 w-10 rounded-full bg-[#EAE7E9] lg:hidden" />
-
+      {/* ================= 8. PROFESSIONAL SERVICE DETAIL & BOOKING POPUP ================= */}
+      <AnimatePresence>
         {selectedService && (
-          <div className="p-5 pt-2">
-            {/* Image Banner */}
-            <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-[#F7F7F5] mb-4 border border-[#EAE7E9]">
-              <Image
-                src={selectedService.image || "/images/goldfacial.webp"}
-                alt={selectedService.name || selectedService.title}
-                fill
-                className="object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => setSelectedService(null)}
-                className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#25232A] shadow-md border border-[#EAE7E9]"
-              >
-                <X size={16} />
-              </button>
-            </div>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedService(null)}
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs"
+            />
 
-            {/* Title & Price */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div>
-                <h3 className="text-lg font-black text-[#25232A] tracking-tight">
-                  {selectedService.name || selectedService.title}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1 text-amber-500">
-                    <Star size={13} fill="currentColor" />
-                    <span className="text-xs font-bold text-[#25232A]">
-                      {selectedService.rating || "4.9"}
+            {/* Modal Dialog: Slide-up Bottom Sheet on Mobile, Centered Modal on Desktop */}
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-[101] max-h-[88vh] bg-white rounded-t-[28px] shadow-[0_-12px_40px_rgba(37,35,42,0.2)] flex flex-col overflow-hidden lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:max-w-xl lg:w-full lg:rounded-[28px] lg:max-h-[85vh]"
+            >
+              {/* Mobile Pull Handle */}
+              <div className="w-12 h-1.5 rounded-full bg-[#EAE7E9] mx-auto mt-2.5 mb-1.5 lg:hidden shrink-0" />
+
+              {/* Scrollable Content Body */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 pt-1 pb-4 space-y-4 scrollbar-none">
+                {/* Banner Image with Close Button and Badges */}
+                <div className="relative h-48 sm:h-56 w-full rounded-2xl overflow-hidden bg-[#FAF7F8] border border-[#EAE7E9]">
+                  <Image
+                    src={getServiceImage(selectedService)}
+                    alt={selectedService.name || selectedService.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedService(null)}
+                    aria-label="Close modal"
+                    className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#25232A] shadow-md border border-[#EAE7E9] active:scale-95 transition-transform cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                    <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-[#C2306B] uppercase tracking-wider shadow-sm border border-[#EAE7E9]">
+                      {selectedService.category || "Woman Services"}
+                    </span>
+                    {selectedService.rating && (
+                      <span className="flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[10px] font-black text-[#25232A] shadow-sm border border-[#EAE7E9]">
+                        <Star size={11} fill="#F59E0B" className="text-amber-500" />
+                        <span>{selectedService.rating}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title & Price Header */}
+                <div className="flex items-start justify-between gap-3 pt-1">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-[#25232A] tracking-tight leading-tight">
+                      {selectedService.name || selectedService.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-[#77717A]">
+                      <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                        <ShieldCheck size={14} /> Background Verified
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 text-[#C2306B] font-bold">
+                        <Sparkles size={14} /> Single-Use Kits
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-xl sm:text-2xl font-black text-[#25232A]">
+                      ₹{selectedService.price}
+                    </span>
+                    <p className="text-[10px] font-semibold text-[#77717A] uppercase tracking-wider">
+                      Taxes included
+                    </p>
+                  </div>
+                </div>
+
+                {/* Service Overview Description */}
+                <div className="rounded-2xl bg-[#F7F7F5] p-3.5 border border-[#EAE7E9]/70">
+                  <h4 className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#77717A] mb-1">
+                    Service Description
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#25232A] leading-relaxed">
+                    {selectedService.description ||
+                      "Enjoy premium salon & home beauty treatments by verified specialists with single-use hygienic kits and sanitized tools."}
+                  </p>
+                </div>
+
+                {/* What's Included / Service Steps from MongoDB */}
+                {selectedService.steps && selectedService.steps.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#25232A] flex items-center gap-1.5">
+                      <CheckCircle2 size={14} className="text-[#C2306B]" />
+                      <span>What's Included & Steps</span>
+                    </h4>
+                    <div className="space-y-1.5 pt-0.5">
+                      {selectedService.steps.map((step, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-[#EAE7E9]"
+                        >
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FCF1F5] text-[10px] font-black text-[#C2306B]">
+                            {idx + 1}
+                          </span>
+                          <p className="text-xs text-[#25232A] font-medium leading-relaxed">
+                            {step}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hygiene & Sparky Promise Pills */}
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="p-2.5 rounded-xl bg-[#FCF1F5] border border-[#F9E3EC] text-center">
+                    <Sparkles size={16} className="mx-auto text-[#C2306B] mb-1" />
+                    <span className="block text-[10px] font-bold text-[#25232A] leading-tight">
+                      Single-Use Kits
                     </span>
                   </div>
-                  <span className="text-[#77717A]">•</span>
-                  <span className="text-[10px] font-bold text-[#C2306B] uppercase tracking-wider">
-                    Verified Professional
-                  </span>
+                  <div className="p-2.5 rounded-xl bg-[#EEF5F7] border border-[#EAE7E9] text-center">
+                    <ShieldCheck size={16} className="mx-auto text-[#094B66] mb-1" />
+                    <span className="block text-[10px] font-bold text-[#25232A] leading-tight">
+                      100% Sanitized
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#F7F0EB] border border-[#EAE7E9] text-center">
+                    <CheckCircle2 size={16} className="mx-auto text-[#55210A] mb-1" />
+                    <span className="block text-[10px] font-bold text-[#25232A] leading-tight">
+                      Mess-Free Finish
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
-                <span className="text-xl font-black text-[#25232A]">
-                  ₹{selectedService.price}
-                </span>
-                <p className="text-[9px] uppercase tracking-widest text-[#77717A]">
-                  Inclusive of all taxes
-                </p>
+              {/* Bottom Sticky Action Area */}
+              <div className="border-t border-[#EAE7E9] bg-white p-3.5 sm:p-4 pb-6 flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#77717A]">
+                    Total Price
+                  </span>
+                  <span className="text-xl font-black text-[#25232A]">
+                    ₹{selectedService.price * (getCartQuantity(selectedService) || 1)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {getCartQuantity(selectedService) > 0 ? (
+                    <div className="flex items-center rounded-xl border border-[#C2306B] bg-[#FCF1F5] p-1">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateQuantity(selectedService, -1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C2306B] font-bold shadow-xs active:scale-90 cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="px-3 text-xs font-black text-[#C2306B]">
+                        {getCartQuantity(selectedService)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateQuantity(selectedService, 1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C2306B] font-bold shadow-xs active:scale-90 cursor-pointer"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(null, selectedService)}
+                      className="px-4 py-3 rounded-xl border border-[#C2306B] bg-white text-xs font-black uppercase tracking-wider text-[#C2306B] hover:bg-[#FCF1F5] active:scale-95 transition-all shadow-xs cursor-pointer"
+                    >
+                      Add to Bag
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleBookNow(selectedService)}
+                    className="px-5 py-3 rounded-xl bg-[#C2306B] text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md hover:bg-[#A82058] active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span>Book Now</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-xs font-normal leading-relaxed text-[#77717A] mb-5">
-              {selectedService.description ||
-                "Enjoy premium salon & home services by verified, trained professionals using sanitized tools and single-use hygienic kits."}
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  handleBooking(selectedService);
-                  setSelectedService(null);
-                }}
-                className="flex-1 py-3 rounded-xl bg-[#C2306B] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform cursor-pointer"
-              >
-                <span>Book Service</span>
-                <ArrowRight size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  router.push(
-                    `/services/${encodeURIComponent(
-                      selectedService.title || selectedService.name
-                    )}`
-                  );
-                }}
-                className="px-4 py-3 rounded-xl border border-[#EAE7E9] bg-white text-xs font-black uppercase tracking-wider text-[#25232A] shadow-xs active:scale-95 transition-transform cursor-pointer"
-              >
-                Details
-              </button>
-            </div>
-          </div>
+            </motion.div>
+          </>
         )}
-      </div>
-    </div>
-  );
-}
-
-/* ================= SKELETON LOADER ================= */
-function SparkyMobileSkeleton() {
-  return (
-    <div className="min-h-screen bg-[#F7F7F5] p-4 space-y-4">
-      {/* Header skeleton */}
-      <div className="h-20 w-full rounded-2xl bg-white animate-pulse border border-[#EAE7E9]" />
-      {/* Category strip skeleton */}
-      <div className="h-16 w-full rounded-2xl bg-white animate-pulse border border-[#EAE7E9]" />
-      {/* Hero skeleton */}
-      <div className="h-40 w-full rounded-2xl bg-white animate-pulse border border-[#EAE7E9]" />
-      {/* Cards skeleton */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="h-48 rounded-2xl bg-white animate-pulse border border-[#EAE7E9]" />
-        <div className="h-48 rounded-2xl bg-white animate-pulse border border-[#EAE7E9]" />
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
